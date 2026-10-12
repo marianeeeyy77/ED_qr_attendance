@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AttendanceRecords from '@/components/AttendanceRecords';
 import Dropdown from '@/components/Dropdown';
@@ -28,9 +27,8 @@ import type { EventRow } from '@/types/database';
  */
 export default function MonitorAttendanceScreen() {
   const { user } = useAuth();
-  const { role, isStaff, loading: roleLoading } = useCampusRole();
+  const { role, isStaff, isAdmin, loading: roleLoading } = useCampusRole();
   const toast = useToast();
-  const insets = useSafeAreaInsets();
   const onStatus = useRealtimeStatusToast(toast);
 
   const [events, setEvents] = useState<EventRow[]>([]);
@@ -76,9 +74,9 @@ export default function MonitorAttendanceScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Monitor Attendance</Text>
+        <Text style={styles.title}>{isAdmin ? 'Overall Attendance' : 'Monitor Attendance'}</Text>
         {loading ? (
           <Text style={styles.hint}>Loading events...</Text>
         ) : events.length === 0 ? (

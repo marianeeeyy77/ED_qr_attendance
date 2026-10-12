@@ -1,4 +1,4 @@
-# SETUP COMMANDS — QR Attendance App
+# SETUP COMMANDS — CampusQR Attend (School Event QR Attendance)
 
 > **Target:** First-year students | **Expo SDK:** 54 | **Expo Go:** 54.0.8
 
@@ -55,16 +55,21 @@ Scan QR code with Expo Go. Or press `W` for web.
 | QR won't scan | Phone + computer on same WiFi |
 | White screen | Wait 10s, or shake → Reload |
 | TypeScript errors | Run `npx tsc --noEmit` |
-| Can't change name / role stuck as "Student" / `42P17 infinite recursion` | Run `supabase/phase3_schema.sql` in the Supabase SQL Editor |
+| Can't change name / role stuck as "Student" / `42P17 infinite recursion` | Run the single SQL block in `SUPABASE_SETUP.md` in the Supabase SQL Editor |
 
 ---
 
 # CampusQR Attend — Role-Based QR Attendance
 
-The CampusQR Attend system (the `app/campus/**` area and `lib/campusqr/**`
-services) is layered on top of this project's **existing** Supabase backend.
-It **consumes** the schema only — no tables, enums, functions, triggers, RLS
-policies or migrations are created or altered by the app.
+**CampusQR Attend is the app.** The old home/Scan/History tabs were removed;
+opening the app lands directly on the CampusQR portal, which routes by
+auth + role (student / teacher / admin). The screens live in `app/campus/**`
+and the data layer in `lib/campusqr/**`.
+
+The app runs on top of your **existing** Supabase backend. It **consumes** the
+schema only — no tables, enums, functions, triggers, RLS policies or
+migrations are created or altered by the app. To (re)create the backend, run
+the single SQL block in `SUPABASE_SETUP.md` in the Supabase SQL Editor.
 
 ## Environment variables
 
@@ -96,8 +101,8 @@ the `admin_set_role`, `admin_set_active` and `admin_delete_user` RPCs.
 ## Roles & navigation
 
 - **Student** — Events · Scan QR · My Attendance · Profile
-- **Teacher** — Manage Events · Monitor · Summaries · Profile
-- **Admin** — Manage Users · Manage Events · Overall Attendance · Correct Records · System Reports · Profile
+- **Teacher** — Manage Events · Generate QR · Monitor Attendance · Summaries (Profile via the header)
+- **Admin** — Manage Users · Manage Events · Overall Attendance · Correct Reports · System Reports (Profile via the header)
 
 Public self-registration always creates an **active student**; teacher/admin are
 promoted by an admin only. Self-service profile edits never send `role`,

@@ -10,7 +10,6 @@ import {
   View,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import BusyButton from '@/components/BusyButton';
@@ -47,7 +46,6 @@ type Phase = 'camera' | 'manual';
 export default function CampusScanScreen() {
   const { role, loading: roleLoading } = useCampusRole();
   const toast = useToast();
-  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [phase, setPhase] = useState<Phase>('camera');
   const [manualCode, setManualCode] = useState('');
@@ -93,7 +91,7 @@ export default function CampusScanScreen() {
 
   if (!roleLoading && permission && !permission.granted && phase === 'camera') {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.container}>
         <View style={styles.permissionBox}>
           <Ionicons name="camera-outline" size={48} color={COLORS.textSecondary} />
           <Text style={styles.title}>Camera Permission Needed</Text>
@@ -110,7 +108,7 @@ export default function CampusScanScreen() {
   const scannerStopped = result !== null;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Scan QR</Text>

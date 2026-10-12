@@ -22,8 +22,11 @@ export type SaveResult = {
   error: string | null;
 };
 
+// Columns that exist in the target schema. NOTE: the clean CampusQR
+// schema has NO legacy columns (event_code/title/start_time/end_time),
+// so we select only the columns that actually exist.
 const EVENT_COLUMNS =
-  'id, name, description, venue, start_datetime, end_datetime, status, qr_token, created_by, created_at, event_code, title, start_time, end_time';
+  'id, name, description, venue, start_datetime, end_datetime, status, qr_token, created_by, created_at';
 
 /** Validates end >= start before touching the database. */
 export function validateEventTimes(
@@ -43,7 +46,40 @@ export function validateEventTimes(
   return null;
 }
 
-/** Lists events visible to the given role (spec listVisibleEvents). */
+/** Lists the ids of every admin (staff can read profiles via RLS). */
+async function listAdminIds(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('role', 'admin');
+  if (error) {
+    console.warn('[campusqr/events] listAdminIds failed:', error.message);
+    return [];
+  }
+  return (data ?? []).map((row) => row.id as string);
+}
+
+/** Lists the ids of every teacher (staff can read profiles via RLS). */
+async function listTeacherIds(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('role', 'teacher');
+  if (error) {
+    console.warn('[campusqr/events] listTeacherIds failed:', error.message);
+    return [];
+  }
+  return (data ?? []).map((row) => row.id as string);
+}
+
+/**
+ * Lists events visible to the given role (spec listVisibleEvents).
+ * - student: only open events (RLS enforces the same).
+ * - teacher: their OWN events (any status) PLUS admin-created events.
+ *   RLS still restricts which of those rows the teacher may actually read
+ *   (admin events come back only while `open`), so this mirrors the DB.
+ * - admin: no extra filter — sees all rows RLS allows.
+ */
 export async function listVisibleEvents(
   role: UserRole | null,
   userId: string | null
@@ -56,13 +92,44 @@ export async function listVisibleEvents(
   if (role === 'student') {
     query = query.eq('status', 'open');
   } else if (role === 'teacher' && userId) {
-    query = query.eq('created_by', userId);
+    const adminIds = await listAdminIds();
+    const creatorFilter =
+      adminIds.length > 0
+        ? `created_by.eq.${userId},created_by.in.(${adminIds
+            .map((id) => `"${id}"`)
+            .join(',')})`
+        : `created_by.eq.${userId}`;
+    query = query.or(creatorFilter);
   }
   // admin: no extra filter — sees all rows RLS allows.
 
   const { data, error } = await query;
   if (error) {
     console.warn('[campusqr/events] listVisibleEvents failed:', error.message);
+    return [];
+  }
+  return (data as EventRow[]) ?? [];
+}
+
+/**
+ * Student "Class" view: open events created by a teacher (as opposed to the
+ * "Events" view, which is every open event including admin-created ones).
+ * Teacher ids come from a plain profiles select inside existing RLS — no
+ * schema change. Falls back to an empty list when no teacher ids resolve.
+ */
+export async function listStudentClassEvents(): Promise<EventRow[]> {
+  const teacherIds = await listTeacherIds();
+  if (teacherIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('events')
+    .select(EVENT_COLUMNS)
+    .eq('status', 'open')
+    .in('created_by', teacherIds)
+    .order('start_datetime', { ascending: false, nullsFirst: false });
+
+  if (error) {
+    console.warn('[campusqr/events] listStudentClassEvents failed:', error.message);
     return [];
   }
   return (data as EventRow[]) ?? [];
@@ -94,8 +161,9 @@ export async function saveNewEvent(
     .from('events')
     .insert({
       name: input.name.trim(),
-      description: input.description,
-      venue: input.venue,
+      // description/venue are NOT NULL DEFAULT '' in the schema — coerce.
+      description: input.description ?? '',
+      venue: input.venue ?? '',
       start_datetime: input.start_datetime,
       end_datetime: input.end_datetime,
       status: input.status,
@@ -118,8 +186,9 @@ export async function updateEvent(
 
   const patch = {
     name: input.name.trim(),
-    description: input.description,
-    venue: input.venue,
+    // description/venue are NOT NULL DEFAULT '' in the schema — coerce.
+    description: input.description ?? '',
+    venue: input.venue ?? '',
     start_datetime: input.start_datetime,
     end_datetime: input.end_datetime,
     status: input.status,

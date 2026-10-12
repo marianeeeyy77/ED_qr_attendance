@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import EmptyState from '@/components/EmptyState';
 import StatusPill, { attendanceStatusTone } from '@/components/StatusPill';
@@ -23,7 +22,6 @@ import {
 export default function MyAttendanceScreen() {
   const { user } = useAuth();
   const toast = useToast();
-  const insets = useSafeAreaInsets();
   const onStatus = useRealtimeStatusToast(toast);
   const [records, setRecords] = useState<OwnAttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +50,7 @@ export default function MyAttendanceScreen() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>My Attendance</Text>
         {loading ? (

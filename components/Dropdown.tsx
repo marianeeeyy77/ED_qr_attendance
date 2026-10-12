@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   },
   field: {
     minHeight: 48,
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.dark,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -165,15 +165,22 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    backgroundColor: COLORS.scrim,
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
   sheet: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.modal,
     borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     paddingVertical: 12,
     maxHeight: '75%',
+    shadowColor: COLORS.shadow,
+    shadowOpacity: 0.5,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 12,
   },
   sheetTitle: {
     fontSize: 16,
@@ -196,7 +203,7 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
   },
   optionActive: {
-    backgroundColor: `${COLORS.primary}10`,
+    backgroundColor: `${COLORS.primary}55`,
   },
   optionText: {
     fontSize: 16,

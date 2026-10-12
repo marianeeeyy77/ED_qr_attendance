@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AttendanceRecords from '@/components/AttendanceRecords';
 import Dropdown from '@/components/Dropdown';
@@ -29,7 +28,6 @@ export default function CorrectRecordsScreen() {
   const { user } = useAuth();
   const { role, isAdmin, loading: roleLoading } = useCampusRole();
   const toast = useToast();
-  const insets = useSafeAreaInsets();
   const onStatus = useRealtimeStatusToast(toast);
 
   const [events, setEvents] = useState<EventRow[]>([]);
@@ -75,9 +73,9 @@ export default function CorrectRecordsScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Correct Records</Text>
+        <Text style={styles.title}>Correct Reports</Text>
         {loading ? (
           <Text style={styles.hint}>Loading events...</Text>
         ) : events.length === 0 ? (

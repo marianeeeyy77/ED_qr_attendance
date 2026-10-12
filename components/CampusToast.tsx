@@ -36,10 +36,10 @@ export function useToast(): ToastApi {
 }
 
 const TONE_COLORS: Record<ToastKind, string> = {
-  success: COLORS.success,
-  error: COLORS.danger,
-  info: COLORS.primary,
-  warning: COLORS.warning,
+  success: COLORS.toastSuccess,
+  error: COLORS.toastError,
+  info: COLORS.toastInfo,
+  warning: COLORS.toastWarning,
 };
 
 const TOAST_DURATION_MS = 3800;

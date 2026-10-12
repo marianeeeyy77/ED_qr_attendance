@@ -20,7 +20,6 @@ export type OwnAttendanceRecord = {
   id: string;
   status: AttendanceStatus;
   recorded_at: string;
-  scanned_at: string | null;
   event: { name: string; start_datetime: string | null } | null;
 };
 
@@ -67,7 +66,8 @@ export async function resolveScanToken(raw: string): Promise<string | null> {
     const parsed = JSON.parse(stripped) as { v?: number; event?: string };
     if (parsed && parsed.v === 1 && typeof parsed.event === 'string') {
       // getEventByCode selects '*' — qr_token exists at runtime after the
-      // campusqr_schema.sql migration, but the legacy type predates it.
+      // CampusQR schema is applied (SUPABASE_SETUP.md), but the legacy type
+      // predates it.
       const legacy = (await getEventByCode(parsed.event)) as {
         qr_token?: string;
       } | null;
@@ -123,7 +123,7 @@ export async function fetchOwnHistory(
   const { data, error } = await supabase
     .from('attendance')
     .select(
-      `id, status, recorded_at, scanned_at,
+      `id, status, recorded_at,
        event:events ( name, start_datetime )`
     )
     .eq('student_id', studentId)
@@ -150,7 +150,7 @@ export async function fetchEventRecords(
   let query = supabase
     .from('attendance')
     .select(
-      `id, student_id, event_id, status, method, recorded_at, recorded_by, scanned_at,
+      `id, student_id, event_id, status, method, recorded_at, recorded_by,
        student:student_id ( full_name, email, student_no ),
        event:event_id ( name )`
     )

@@ -3,16 +3,17 @@ import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import FadeInView from '@/components/FadeInView';
 import GlassCard from '@/components/GlassCard';
 import GradientButton from '@/components/GradientButton';
 import Header from '@/components/Header';
 import { COLORS } from '@/constants/colors';
 
 /**
- * Landing portal (spec C5 "Landing"): two glass cards — Personnel
- * (teacher/admin, login only, with the administrator-creation note) and
- * Student (login + register). This is the unauthenticated front door for
- * the CampusQR Attend system.
+ * Landing portal: a single welcome card with Log In and Sign Up for all
+ * users. New accounts always start as Student (the database trigger
+ * hardcodes it) — personnel roles are assigned later by an administrator.
+ * This is the unauthenticated front door for the CampusQR Attend system.
  */
 export default function CampusLandingScreen() {
   const router = useRouter();
@@ -28,59 +29,38 @@ export default function CampusLandingScreen() {
         subtitle="School Event Attendance System"
       />
 
-      <GlassCard variant="card" style={styles.card}>
-        <View style={styles.cardHead}>
-          <View style={styles.iconBubble}>
-            <Ionicons name="shield-outline" size={22} color={COLORS.primary} />
+      <FadeInView delay={60}>
+        <GlassCard variant="card" style={styles.card}>
+          <View style={styles.cardHead}>
+            <View style={styles.iconBubble}>
+              <Ionicons name="qr-code-outline" size={22} color={COLORS.primary} />
+            </View>
+            <View style={styles.cardTitleBox}>
+              <Text style={styles.cardTitle}>Welcome to CampusQR Attend</Text>
+              <Text style={styles.cardRole}>School Event Attendance System</Text>
+            </View>
           </View>
-          <View style={styles.cardTitleBox}>
-            <Text style={styles.cardTitle}>Personnel</Text>
-            <Text style={styles.cardRole}>Teacher &amp; Administrator</Text>
-          </View>
-        </View>
-        <Text style={styles.cardBody}>
-          Create and manage events, display QR codes, monitor attendance, and
-          run summaries and reports.
-        </Text>
-        <Text style={styles.note}>
-          Personnel accounts are created by an administrator — login only, no
-          self-registration.
-        </Text>
-        <GradientButton
-          title="Personnel Sign In"
-          variant="personnel"
-          onPress={() => router.push('/campus/login')}
-          style={styles.button}
-        />
-      </GlassCard>
-
-      <GlassCard variant="card" style={styles.card}>
-        <View style={styles.cardHead}>
-          <View style={[styles.iconBubble, styles.iconBubbleAmber]}>
-            <Ionicons name="qr-code-outline" size={22} color={COLORS.amber} />
-          </View>
-          <View style={styles.cardTitleBox}>
-            <Text style={styles.cardTitle}>Student</Text>
-            <Text style={styles.cardRole}>Scan &amp; check in</Text>
-          </View>
-        </View>
-        <Text style={styles.cardBody}>
-          Scan an event QR code to record your attendance and keep track of
-          your own attendance history.
-        </Text>
-        <GradientButton
-          title="Create Student Account"
-          variant="student"
-          onPress={() => router.push('/campus/register')}
-          style={styles.button}
-        />
-        <GradientButton
-          title="Student Sign In"
-          variant="personnel"
-          onPress={() => router.push('/campus/login')}
-          style={styles.buttonSpacing}
-        />
-      </GlassCard>
+          <Text style={styles.cardBody}>
+            Sign in to manage events, scan QR codes, and track attendance.
+          </Text>
+          <Text style={styles.note}>
+            New accounts start as Student — personnel roles are assigned by an
+            administrator.
+          </Text>
+          <GradientButton
+            title="Log In"
+            variant="personnel"
+            onPress={() => router.push('/campus/login')}
+            style={styles.button}
+          />
+          <GradientButton
+            title="Sign Up"
+            variant="student"
+            onPress={() => router.push('/campus/register')}
+            style={styles.buttonSpacing}
+          />
+        </GlassCard>
+      </FadeInView>
 
       <Text style={styles.footer}>Developed by: Leonard V. Abatayo</Text>
     </ScrollView>
@@ -110,10 +90,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(99,102,241,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  iconBubbleAmber: {
-    backgroundColor: 'rgba(251,191,36,0.20)',
-    borderColor: 'rgba(251,191,36,0.5)',
   },
   cardTitleBox: {
     flex: 1,

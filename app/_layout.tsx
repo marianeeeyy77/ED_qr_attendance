@@ -1,47 +1,32 @@
-import { Redirect, Stack, useSegments } from 'expo-router';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Stack } from 'expo-router';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import AppBackground from '@/components/AppBackground';
-import { COLORS } from '@/constants/colors';
-import { useAuth } from '@/lib/auth';
 
+/**
+ * Root layout. CampusQR Attend is the entire app now — the legacy
+ * `(tabs)` home and the old root `login`/`register` screens have been
+ * removed. The root route (`index`) forwards into the CampusQR portal,
+ * and all auth/role routing lives inside the `campus` area.
+ *
+ * `SafeAreaProvider` is mounted here so `useSafeAreaInsets()` returns real
+ * values on native (notches, home indicators); without it every inset is 0
+ * and content renders under the status bar.
+ */
 export default function RootLayout() {
-  const { session, loading } = useAuth();
-  const segments = useSegments();
-
-  if (loading) {
-    return (
-      <AppBackground>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
-      </AppBackground>
-    );
-  }
-
-  const path = segments?.[0];
-  const inAuthGroup = path === 'login' || path === 'register';
-  const inTabsGroup = path === '(tabs)';
-
   return (
-    <AppBackground>
-      <Stack screenOptions={{ headerShown: false }}>
-        {/* Unauthenticated users land on the CampusQR portal. */}
-        {!session && inTabsGroup && <Redirect href="/campus" />}
-        {session && inAuthGroup && <Redirect href="/(tabs)" />}
-        <Stack.Screen name="login" />
-        <Stack.Screen name="register" />
-        <Stack.Screen name="campus" />
-        <Stack.Screen name="(tabs)" />
-      </Stack>
-    </AppBackground>
+    <SafeAreaProvider>
+      <AppBackground>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: 'transparent' },
+          }}
+        >
+          <Stack.Screen name="index" />
+          <Stack.Screen name="campus" />
+        </Stack>
+      </AppBackground>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

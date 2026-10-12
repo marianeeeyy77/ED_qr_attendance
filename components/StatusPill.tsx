@@ -9,7 +9,7 @@ import type { AttendanceStatus, EventStatus, UserRole } from '@/types/database';
  * hairline border, uppercase + tracking — always readable on dark glass.
  */
 
-export type PillTone = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+export type PillTone = 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'sky';
 
 const TONE_HEX: Record<PillTone, string> = {
   success: COLORS.success,
@@ -17,6 +17,7 @@ const TONE_HEX: Record<PillTone, string> = {
   danger: COLORS.danger,
   info: COLORS.info,
   neutral: COLORS.neutral,
+  sky: COLORS.sky,
 };
 
 export function eventStatusTone(status: EventStatus): PillTone {
@@ -24,9 +25,9 @@ export function eventStatusTone(status: EventStatus): PillTone {
     case 'open':
       return 'success';
     case 'draft':
-      return 'neutral';
+      return 'warning';
     case 'closed':
-      return 'danger';
+      return 'neutral';
   }
 }
 
@@ -39,7 +40,7 @@ export function attendanceStatusTone(status: AttendanceStatus): PillTone {
     case 'absent':
       return 'danger';
     case 'excused':
-      return 'info';
+      return 'sky';
   }
 }
 

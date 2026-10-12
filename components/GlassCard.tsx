@@ -1,7 +1,8 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import Blur from '@/components/Blur';
-import { GLASS, type GlassVariant } from '@/constants/colors';
+import Gradient from '@/components/Gradient';
+import { DEPTH, GLASS, type GlassVariant } from '@/constants/colors';
 
 type Props = {
   children: React.ReactNode;
@@ -13,9 +14,11 @@ type Props = {
 };
 
 /**
- * Frosted glass surface (spec B2). Uses `expo-blur` BlurView with a
- * translucent overlay + hairline border so native and web match. On web
- * the BlurView falls back gracefully but border/background stay identical.
+ * Frosted glass surface (spec B2) with a 3D lift: uses `expo-blur` BlurView
+ * with a translucent overlay + hairline border, plus a specular top
+ * highlight, inner bottom shading and a lighter beveled top edge so the
+ * pane reads as raised glass rather than a flat panel. On web the BlurView
+ * falls back gracefully but border/background stay identical.
  */
 export default function GlassCard({
   children,
@@ -33,6 +36,8 @@ export default function GlassCard({
         {
           borderRadius: cornerRadius,
           borderColor: config.border,
+          // Lighter top hairline + hairline sides = raised beveled edge.
+          borderTopColor: DEPTH.bevelTop,
           overflow: 'hidden',
         },
         style,
@@ -46,6 +51,22 @@ export default function GlassCard({
       <View
         pointerEvents="none"
         style={[StyleSheet.absoluteFill, { backgroundColor: config.overlay }]}
+      />
+      {/* Specular highlight across the top — light hitting the glass edge. */}
+      <Gradient
+        colors={DEPTH.specularTop}
+        locations={[0, 0.35]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      {/* Inner shading at the bottom — glass thickness. */}
+      <Gradient
+        colors={DEPTH.innerBottom}
+        locations={[0.55, 1]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
       />
       <View style={styles.content}>{children}</View>
     </View>

@@ -14,6 +14,7 @@ import { Link, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BusyButton from '@/components/BusyButton';
+import FadeInView from '@/components/FadeInView';
 import Header from '@/components/Header';
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
@@ -75,7 +76,7 @@ export default function CampusLoginScreen() {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 32 }]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
@@ -83,13 +84,10 @@ export default function CampusLoginScreen() {
               <Header title="CampusQR" />
             </View>
 
+            <FadeInView delay={80} style={styles.fadeBody}>
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>
-              Sign in to view events and record attendance
-            </Text>
-            <Text style={styles.personnelNote}>
-              Personnel accounts are created by an administrator — login only,
-              no self-registration.
+              Sign in to CampusQR Attend
             </Text>
 
             <View style={styles.form}>
@@ -132,6 +130,7 @@ export default function CampusLoginScreen() {
             <Link href="/campus/register" style={styles.link}>
               Don&apos;t have an account? Sign Up
             </Link>
+            </FadeInView>
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -153,6 +152,10 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     alignItems: 'center',
   },
+  fadeBody: {
+    width: '100%',
+    alignItems: 'center',
+  },
   headerContainer: {
     alignItems: 'center',
     marginTop: 20,
@@ -170,16 +173,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: 'center',
     lineHeight: 21,
-    marginBottom: 12,
-  },
-  personnelNote: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    fontStyle: 'italic',
-    lineHeight: 18,
     marginBottom: 20,
-    paddingHorizontal: 12,
   },
   form: {
     width: '100%',

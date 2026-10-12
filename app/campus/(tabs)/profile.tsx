@@ -11,7 +11,6 @@ import {
   View,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import BusyButton from '@/components/BusyButton';
@@ -44,14 +43,21 @@ import type { Profile } from '@/types/database';
  * buildProfilePatch writes department = course and
  * grade_class = formatGradeClass(...) on every save. Own-row updates
  * arrive live via the shared realtime channel.
+ *
+ * Students are read-only: personal + educational information is shown
+ * for viewing only (inputs disabled, no Save button); only teachers
+ * and admins may edit their own profile. Sign-out stays available
+ * to every role.
  */
 export default function CampusProfileScreen() {
   const { user } = useAuth();
-  const { refresh: refreshRole } = useCampusRole();
+  const { refresh: refreshRole, isStudent } = useCampusRole();
   const toast = useToast();
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const onStatus = useRealtimeStatusToast(toast);
+
+  // Students view personal + educational information read-only; staff may edit.
+  const readOnly = isStudent;
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [attended, setAttended] = useState(0);
@@ -154,7 +160,7 @@ export default function CampusProfileScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.container}>
         <View style={styles.loadingBox}>
           <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.hint}>Loading profile...</Text>
@@ -164,7 +170,7 @@ export default function CampusProfileScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -175,6 +181,13 @@ export default function CampusProfileScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.title}>Profile</Text>
+
+          {readOnly && (
+            <Text style={styles.hint}>
+              Your account is managed by your school admin. Contact{' '}
+              your teacher if your details change.
+            </Text>
+          )}
 
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
@@ -260,13 +273,15 @@ export default function CampusProfileScreen() {
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <View style={styles.actions}>
-            <BusyButton
-              title="Save Profile"
-              loadingTitle="Saving..."
-              icon="checkmark-outline"
-              onPress={handleSave}
-              loading={saving}
-            />
+            {!readOnly && (
+              <BusyButton
+                title="Save Profile"
+                loadingTitle="Saving..."
+                icon="checkmark-outline"
+                onPress={handleSave}
+                loading={saving}
+              />
+            )}
             <Pressable
               style={styles.signOutButton}
               onPress={handleSignOut}

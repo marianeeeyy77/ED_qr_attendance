@@ -9,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import EmptyState from '@/components/EmptyState';
 import LockedView from '@/components/LockedView';
@@ -45,7 +44,6 @@ export default function SystemReportsScreen() {
   const { user } = useAuth();
   const { role, isAdmin, isStaff, loading: roleLoading } = useCampusRole();
   const toast = useToast();
-  const insets = useSafeAreaInsets();
   const onStatus = useRealtimeStatusToast(toast);
 
   const [period, setPeriod] = useState<Period>('all');
@@ -119,10 +117,10 @@ export default function SystemReportsScreen() {
     { total: 0, counts: { present: 0, late: 0, absent: 0, excused: 0 } as Record<AttendanceStatus, number> }
   );
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>System Reports</Text>
+          <Text style={styles.title}>{isAdmin ? 'System Reports' : 'Summaries'}</Text>
           <Pressable
             style={[styles.shareButton, sharing && styles.disabled]}
             onPress={handleShare}

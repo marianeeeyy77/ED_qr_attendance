@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BusyButton from '@/components/BusyButton';
 import EducationFields from '@/components/EducationFields';
+import FadeInView from '@/components/FadeInView';
 import Header from '@/components/Header';
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
@@ -130,7 +131,7 @@ export default function CampusRegisterScreen() {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 32 }]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
@@ -140,9 +141,14 @@ export default function CampusRegisterScreen() {
 
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>
-              Register to view events and record attendance
+              Sign up to get started with CampusQR Attend
+            </Text>
+            <Text style={styles.accountNote}>
+              New accounts start as Student — personnel roles are assigned by
+              an administrator.
             </Text>
 
+            <FadeInView delay={80} style={styles.fadeBody}>
             {success ? (
               <View style={styles.successContainer}>
                 <Text style={styles.successTitle}>Check your email!</Text>
@@ -248,6 +254,8 @@ export default function CampusRegisterScreen() {
               </View>
             )}
 
+            </FadeInView>
+
             {!success && (
               <Link href="/campus/login" style={styles.link}>
                 Already have an account? Sign In
@@ -291,11 +299,23 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: 'center',
     lineHeight: 21,
-    marginBottom: 32,
+    marginBottom: 8,
+  },
+  accountNote: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    lineHeight: 18,
+    marginBottom: 20,
+    paddingHorizontal: 12,
   },
   form: {
     width: '100%',
     marginBottom: 24,
+  },
+  fadeBody: {
+    width: '100%',
   },
   educationSection: {
     marginTop: 10,

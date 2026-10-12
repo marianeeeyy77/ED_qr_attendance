@@ -39,23 +39,46 @@ function CampusNavigator() {
   const isPortal = sub === undefined || sub === 'index';
   const inAuth = sub === 'login' || sub === 'register';
   const isPublic = isPortal || inAuth;
+  // Admins have no Profile tab (they sign out from the header). A deep link
+  // to it would render a bare profile screen, so send admins to their
+  // default tab instead.
+  const tabLeaf = parts[2] === '(tabs)' ? parts[3] : undefined;
+  const adminOnProfile = role === 'admin' && tabLeaf === 'profile';
 
-  if (!session && !isPublic) {
-    return <Redirect href="/campus" />;
-  }
-  if (session && isPublic) {
-    return <Redirect href={defaultTabFor(role)} />;
-  }
+  // Redirect targets are computed only — the Stack below is ALWAYS rendered
+  // so the target screen exists in a mounted navigator. Returning <Redirect />
+  // *instead* of the Stack unmounts the very navigator that owns `index`,
+  // which crashes with:
+  //   "The action 'REPLACE' with payload {"name":"index",...} was not
+  //    handled by any navigator."
+  const redirectTo =
+    !session && !isPublic
+      ? '/campus'
+      : session && isPublic
+        ? defaultTabFor(role)
+        : session && adminOnProfile
+          ? defaultTabFor(role)
+          : null;
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="login" />
-      <Stack.Screen name="register" />
-      <Stack.Screen name="event-form" />
-      <Stack.Screen name="qr-display" />
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
+        <Stack.Screen name="event-form" />
+        <Stack.Screen name="qr-display" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+      {redirectTo ? (
+        <Redirect href={redirectTo as '/campus'} />
+      ) : null}
+    </>
   );
 }
 

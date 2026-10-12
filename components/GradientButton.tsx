@@ -1,7 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type ViewStyle } from 'react-native';
 
 import Gradient from '@/components/Gradient';
-import { GRADIENTS } from '@/constants/colors';
+import { DEPTH, GRADIENTS } from '@/constants/colors';
 
 type Variant = 'personnel' | 'student' | 'brand';
 
@@ -9,6 +9,13 @@ const COLORS_BY_VARIANT: Record<Variant, readonly [string, string]> = {
   personnel: GRADIENTS.personnel,
   student: GRADIENTS.student,
   brand: GRADIENTS.personnel,
+};
+
+/** Accent glow-shadow per variant — a lifted, colored halo, not flat black. */
+const GLOW_BY_VARIANT: Record<Variant, string> = {
+  personnel: DEPTH.glowPersonnel,
+  student: DEPTH.glowStudent,
+  brand: DEPTH.glowPersonnel,
 };
 
 type Props = {
@@ -21,10 +28,11 @@ type Props = {
 };
 
 /**
- * Gradient action button (spec B2 brand gradients):
+ * Gradient action button (spec B2 brand gradients) with a 3D lift:
  *   personnel → indigo-500 → indigo-900
  *   student   → amber-400  → amber-500
- * Press lifts + brightens; disabled/busy shows a spinner and dims.
+ * A specular top highlight + accent-colored glow shadow make it read as a
+ * raised pill. Press lifts + brightens; disabled/busy shows a spinner.
  */
 export default function GradientButton({
   title,
@@ -43,6 +51,7 @@ export default function GradientButton({
       accessibilityLabel={title}
       style={({ pressed }) => [
         styles.wrap,
+        { shadowColor: GLOW_BY_VARIANT[variant] },
         style,
         pressed && !isDisabled && styles.pressed,
         isDisabled && styles.disabled,
@@ -59,6 +68,14 @@ export default function GradientButton({
         ) : null}
         <Text style={styles.label}>{title}</Text>
       </Gradient>
+      {/* Specular highlight across the top of the pill (raised edge). */}
+      <Gradient
+        colors={DEPTH.specularTop}
+        locations={[0, 0.5]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.sheen}
+      />
     </Pressable>
   );
 }
@@ -79,6 +96,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 18,
+  },
+  sheen: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: '50%',
   },
   pressed: {
     transform: [{ scale: 0.98 }],

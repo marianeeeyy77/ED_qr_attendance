@@ -1,7 +1,7 @@
 /**
  * CampusQR database types.
  *
- * Mirrors the Supabase schema defined in supabase/campusqr_schema.sql:
+ * Mirrors the Supabase schema defined in SUPABASE_SETUP.md:
  * tables, enums, and the check_in / admin_* RPC signatures and result
  * unions. These types are additive — the existing app does not use them.
  */

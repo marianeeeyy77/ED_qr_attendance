@@ -1,24 +1,32 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useToast } from '@/components/CampusToast';
 import Gradient from '@/components/Gradient';
 import StatusPill, { roleTone } from '@/components/StatusPill';
-import { COLORS, GRADIENTS } from '@/constants/colors';
+import { COLORS, DEPTH, GRADIENTS } from '@/constants/colors';
 import { signOut } from '@/lib/campusqr/auth';
 import { ROLE_LABEL, useCampusRole } from '@/lib/campusqr/roles';
 
 /**
  * Shared header for every CampusQR tab (spec C5 "Header (all roles)"):
  * animated gradient logo, app name + "School Event Attendance System"
- * subtitle, the signed-in user's name + role pill, and a Logout action.
+ * subtitle, the signed-in user's name + role pill, and a Sign out icon.
  * Rendered as the React Navigation header for the campus tab navigator.
+ * (The Profile tab holds the full profile; admins have no Profile tab and
+ * sign out from here.)
+ *
+ * The top safe-area inset is applied here (the navigator's own status-bar
+ * height is disabled in the tab layout) so the logo/name never sit under
+ * the notch or status bar on native.
  */
 export default function AppHeader() {
   const { profile, role } = useCampusRole();
   const router = useRouter();
   const toast = useToast();
+  const insets = useSafeAreaInsets();
 
   const name = profile?.full_name?.trim() || 'Account';
 
@@ -32,7 +40,7 @@ export default function AppHeader() {
   };
 
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, { paddingTop: insets.top }]}>
       <Gradient
         colors={[...GRADIENTS.brand]}
         start={{ x: 0, y: 0 }}
@@ -40,6 +48,14 @@ export default function AppHeader() {
         style={styles.logo}
       >
         <MaterialIcons name="school" size={18} color="#FFFFFF" />
+        {/* Specular sheen across the mark (matches the 3D Header logo). */}
+        <Gradient
+          colors={DEPTH.sheenSoft}
+          locations={[0, 0.6]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
       </Gradient>
 
       <View style={styles.titleBox}>
@@ -62,9 +78,9 @@ export default function AppHeader() {
 
       <Pressable
         onPress={handleSignOut}
-        style={styles.logout}
+        style={styles.iconButton}
         accessibilityRole="button"
-        accessibilityLabel="Log out"
+        accessibilityLabel="Sign out"
         hitSlop={8}
       >
         <MaterialIcons name="logout" size={20} color={COLORS.textSecondary} />
@@ -90,10 +106,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',
   },
   titleBox: {
+    flex: 1,
     flexShrink: 1,
   },
   appName: {
@@ -116,7 +134,7 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     maxWidth: 120,
   },
-  logout: {
+  iconButton: {
     minWidth: 40,
     minHeight: 40,
     justifyContent: 'center',

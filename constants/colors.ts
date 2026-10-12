@@ -27,6 +27,14 @@ export const COLORS = {
   surface: 'rgba(255,255,255,0.08)',
   /** .glass-dark — nav bars, dark panels */
   dark: 'rgba(15,15,60,0.55)',
+  /**
+   * Opaque overlay surface for modals + dropdown menus (solid deep indigo
+   * from the same family as the radial core — readable white text, no
+   * bleed-through from content behind the overlay).
+   */
+  modal: '#24247a',
+  /** Dark scrim dimming the content behind an open modal/menu. */
+  scrim: 'rgba(7,7,36,0.62)',
   /** Light frosted surface for forms/tables/modals (dark text on it). */
   frosted: 'rgba(255,255,255,0.88)',
 
@@ -48,6 +56,12 @@ export const COLORS = {
   danger: '#f43f5e', // rose — errors / destructive / absent
   info: '#6366f1', // indigo — info toasts
   neutral: '#94a3b8', // slate — closed / draft / neutral
+
+  // ---- Toast solid backgrounds (spec §7.2 — 600 shades for contrast) ---
+  toastSuccess: '#059669', // emerald-600
+  toastError: '#e11d48', // rose-600
+  toastInfo: '#4f46e5', // indigo-600
+  toastWarning: '#f59e0b', // amber-500
 
   /** QR dark modules (slate-900) — QR always renders dark-on-white. */
   qrInk: '#0f172a',
@@ -108,3 +122,33 @@ export function withAlpha(hex: string, alpha: number): string {
   const b = parseInt(full.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
+
+/**
+ * 3D depth layer (UI/UX polish). Built ONLY from white/black overlays and
+ * the palette colors already defined above — no new hues, no token values
+ * changed. Used by the background aurora, the glass specular/sheen, the
+ * beveled edges and the button glow shadows to give the flat glassmorphism
+ * a raised, floating-glass sense of depth.
+ */
+export const DEPTH = {
+  /** Specular highlight on the top of a glass/button surface. */
+  specularTop: ['rgba(255,255,255,0.26)', 'rgba(255,255,255,0)'] as const,
+  /** Softer sheen for the header / smaller marks. */
+  sheenSoft: ['rgba(255,255,255,0.20)', 'rgba(255,255,255,0)'] as const,
+  /** Inner shading along the bottom of a glass pane (thickness). */
+  innerBottom: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.10)'] as const,
+  /** Beveled edge: lighter top hairline than the sides. */
+  bevelTop: 'rgba(255,255,255,0.34)',
+
+  /** Background aurora glows (blue + indigo, from the palette). */
+  auroraBlue: ['rgba(59,130,246,0.30)', 'rgba(59,130,246,0)'] as const,
+  auroraIndigo: ['rgba(99,102,241,0.34)', 'rgba(99,102,241,0)'] as const,
+  /** Grounding glow toward the bottom. */
+  auroraFloor: ['rgba(59,130,246,0.18)', 'rgba(59,130,246,0)'] as const,
+  /** Edge vignette to focus the center (darkest radial stop). */
+  vignette: ['rgba(7,7,36,0)', 'rgba(7,7,36,0.55)'] as const,
+
+  /** Button glow shadows — tinted to the accent, not pure black. */
+  glowPersonnel: '#6366f1',
+  glowStudent: '#f59e0b',
+} as const;

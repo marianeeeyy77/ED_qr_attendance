@@ -11,7 +11,6 @@ import {
   View,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import BusyButton from '@/components/BusyButton';
@@ -65,7 +64,6 @@ export default function ManageUsersScreen() {
   const { user } = useAuth();
   const { role, loading: roleLoading } = useCampusRole();
   const toast = useToast();
-  const insets = useSafeAreaInsets();
   const onStatus = useRealtimeStatusToast(toast);
 
   const [users, setUsers] = useState<Profile[]>([]);
@@ -229,7 +227,7 @@ export default function ManageUsersScreen() {
 
   if (roleLoading || loading) {
     return (
-      <View style={[styles.center, { paddingTop: insets.top }]}>
+      <View style={styles.center}>
         <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={styles.hint}>Loading users...</Text>
       </View>
@@ -237,7 +235,8 @@ export default function ManageUsersScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
+      <Text style={styles.title}>Manage Users</Text>
       <View style={styles.searchWrap}>
         <Ionicons name="search-outline" size={18} color={COLORS.textSecondary} />
         <TextInput
@@ -353,8 +352,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   center: { flex: 1, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', gap: 10 },
   hint: { fontSize: 14, color: COLORS.textSecondary },
+  title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary, marginHorizontal: 16, marginBottom: 12 },
   searchWrap: {
-    flexDirection: 'row', alignItems: 'center', gap: 8, margin: 16, marginBottom: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginBottom: 8,
     backgroundColor: COLORS.card, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border,
     paddingHorizontal: 12, minHeight: 48,
   },
@@ -378,8 +378,13 @@ const styles = StyleSheet.create({
   actionButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, gap: 4 },
   actionText: { fontSize: 14, fontWeight: '600', color: COLORS.primary },
   deleteText: { color: COLORS.danger },
-  backdrop: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.45)', justifyContent: 'center', paddingHorizontal: 20 },
-  sheet: { backgroundColor: COLORS.card, borderRadius: 14, maxHeight: '88%' },
+  backdrop: { flex: 1, backgroundColor: COLORS.scrim, justifyContent: 'center', paddingHorizontal: 20 },
+  sheet: {
+    backgroundColor: COLORS.modal, borderRadius: 14, maxHeight: '88%',
+    borderWidth: 1, borderColor: COLORS.border,
+    shadowColor: COLORS.shadow, shadowOpacity: 0.5, shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 }, elevation: 12,
+  },
   sheetScroll: { padding: 18, paddingBottom: 28 },
   sheetTitle: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 8 },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: COLORS.primary, marginTop: 12, marginBottom: 4 },

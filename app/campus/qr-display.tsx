@@ -74,7 +74,7 @@ export default function CampusQrDisplayScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]} showsVerticalScrollIndicator={false}>
         {loading ? (
           <View style={styles.center}>
             <ActivityIndicator size="large" color={COLORS.primary} />
