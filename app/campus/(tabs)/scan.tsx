@@ -2,7 +2,6 @@ import { useCallback, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import {
 import { useFocusEffect } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
+import AnimatedPressable from '@/components/AnimatedPressable';
 import BusyButton from '@/components/BusyButton';
 import LockedView from '@/components/LockedView';
 import ResultPanel, { type ResultTone } from '@/components/ResultPanel';
@@ -97,9 +97,9 @@ export default function CampusScanScreen() {
           <Text style={styles.title}>Camera Permission Needed</Text>
           <Text style={styles.subtitle}>We need access to your camera to scan QR codes. You can also enter the event code manually.</Text>
           <BusyButton title="Grant Permission" loadingTitle="Requesting..." icon="camera-outline" onPress={() => requestPermission()} loading={false} />
-          <Pressable style={styles.linkButton} onPress={() => setPhase('manual')}>
+          <AnimatedPressable style={styles.linkButton} onPress={() => setPhase('manual')}>
             <Text style={styles.linkText}>Enter event code manually</Text>
-          </Pressable>
+          </AnimatedPressable>
         </View>
       </View>
     );
@@ -112,32 +112,40 @@ export default function CampusScanScreen() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Scan QR</Text>
-          <Text style={styles.subtitle}>Point your camera at the event QR code, or enter the event code.</Text>
           <View style={styles.segment}>
-            <Pressable
+            <AnimatedPressable
               style={[styles.segmentButton, phase === 'camera' && styles.segmentActive]}
               onPress={() => { setPhase('camera'); handleScanAgain(); }}>
               <Text style={[styles.segmentText, phase === 'camera' && styles.segmentTextActive]}>Camera</Text>
-            </Pressable>
-            <Pressable
+            </AnimatedPressable>
+            <AnimatedPressable
               style={[styles.segmentButton, phase === 'manual' && styles.segmentActive]}
               onPress={() => { setPhase('manual'); handleScanAgain(); }}>
               <Text style={[styles.segmentText, phase === 'manual' && styles.segmentTextActive]}>Manual code</Text>
-            </Pressable>
+            </AnimatedPressable>
           </View>
           {phase === 'camera' ? (
             <View style={styles.cameraBox}>
               {!scannerStopped ? (
-                <SafeCameraView style={styles.camera} facing="back"
-                  barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-                  onBarcodeScanned={({ data }) => handleRawScan(data)} />
+                <View style={styles.cameraFrame}>
+                  <SafeCameraView style={styles.camera} facing="back"
+                    barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                    onBarcodeScanned={({ data }) => handleRawScan(data)} />
+                  <View pointerEvents="none" style={styles.reticle}>
+                    <View style={[styles.corner, styles.cornerTL]} />
+                    <View style={[styles.corner, styles.cornerTR]} />
+                    <View style={[styles.corner, styles.cornerBL]} />
+                    <View style={[styles.corner, styles.cornerBR]} />
+                    <View style={styles.scanBar} />
+                  </View>
+                </View>
               ) : (
                 <View style={styles.cameraPaused}>
                   <Ionicons name="pause-circle-outline" size={44} color={COLORS.textSecondary} />
                   <Text style={styles.hint}>Scanner paused — see your result below.</Text>
                 </View>
               )}
-              <Text style={styles.hint}>Point your camera at a QR code</Text>
+              <Text style={styles.helper}>Align QR code within frame to check in</Text>
             </View>
           ) : (
             <View style={styles.manualBox}>
@@ -155,10 +163,10 @@ export default function CampusScanScreen() {
           {result && (
             <View style={styles.resultWrap}>
               <ResultPanel tone={RESULT_TONE[result.result]} title={RESULT_TITLE[result.result]} message={result.message}>
-                <Pressable style={styles.secondaryButton} onPress={handleScanAgain}>
+                <AnimatedPressable style={styles.secondaryButton} onPress={handleScanAgain}>
                   <Ionicons name="refresh-outline" size={18} color={COLORS.primary} />
                   <Text style={styles.secondaryText}>Scan again</Text>
-                </Pressable>
+                </AnimatedPressable>
               </ResultPanel>
             </View>
           )}
@@ -171,32 +179,44 @@ export default function CampusScanScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   flex: { flex: 1 },
-  scroll: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8 },
-  title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 4, textAlign: 'center' },
+  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginBottom: 12, textAlign: 'center', paddingTop: 12 },
   subtitle: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 16 },
   permissionBox: { flex: 1, justifyContent: 'center', paddingHorizontal: 32, alignItems: 'center', gap: 12 },
   linkButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
   linkText: { fontSize: 15, fontWeight: '600', color: COLORS.primary },
   segment: {
-    flexDirection: 'row', backgroundColor: COLORS.card, borderRadius: 10,
-    borderWidth: 1, borderColor: COLORS.border, padding: 4, marginBottom: 16,
+    flexDirection: 'row', backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 999,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 4, marginBottom: 16,
   },
-  segmentButton: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
-  segmentActive: { backgroundColor: COLORS.primary },
-  segmentText: { fontSize: 15, fontWeight: '600', color: COLORS.textSecondary },
+  segmentButton: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 999 },
+  segmentActive: { backgroundColor: '#162660' },
+  segmentText: { fontSize: 15, fontWeight: '600', color: '#4A5878' },
   segmentTextActive: { color: '#FFFFFF' },
   cameraBox: { alignItems: 'center', gap: 10, marginBottom: 16 },
-  camera: { width: '100%', height: 320, borderRadius: 14, overflow: 'hidden' },
+  cameraFrame: { width: '100%', height: 320, borderRadius: 16, overflow: 'hidden', position: 'relative' },
+  camera: { width: '100%', height: 320, borderRadius: 16, overflow: 'hidden' },
+  reticle: { position: 'absolute', left: 24, right: 24, top: 24, bottom: 24 },
+  corner: { position: 'absolute', width: 34, height: 34, borderColor: '#2A5BD7' },
+  cornerTL: { top: 0, left: 0, borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 10 },
+  cornerTR: { top: 0, right: 0, borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 10 },
+  cornerBL: { bottom: 0, left: 0, borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: 10 },
+  cornerBR: { bottom: 0, right: 0, borderBottomWidth: 3, borderRightWidth: 3, borderBottomRightRadius: 10 },
+  scanBar: {
+    position: 'absolute', left: 8, right: 8, top: '48%', height: 2,
+    backgroundColor: 'rgba(56,189,248,0.7)', borderRadius: 2,
+  },
+  helper: { fontSize: 13, color: '#4A5878', textAlign: 'center' },
   cameraPaused: {
-    width: '100%', height: 320, borderRadius: 14, backgroundColor: COLORS.card,
+    width: '100%', height: 320, borderRadius: 16, backgroundColor: COLORS.card,
     borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center', gap: 8,
   },
   hint: { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center' },
   manualBox: { width: '100%', marginBottom: 8 },
   label: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary, marginBottom: 6 },
   input: {
-    backgroundColor: COLORS.card, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border,
-    paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: COLORS.textPrimary, marginBottom: 12,
+    backgroundColor: COLORS.card, borderRadius: 12, borderWidth: 1, borderColor: COLORS.border,
+    paddingHorizontal: 14, paddingVertical: 12, minHeight: 48, fontSize: 15, color: COLORS.textPrimary, marginBottom: 12,
   },
   resultWrap: { width: '100%', marginTop: 8 },
   secondaryButton: {

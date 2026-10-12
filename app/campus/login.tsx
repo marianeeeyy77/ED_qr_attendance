@@ -81,13 +81,13 @@ export default function CampusLoginScreen() {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.headerContainer}>
-              <Header title="CampusQR" />
+              <Header title="School Attendance System" />
             </View>
 
             <FadeInView delay={80} style={styles.fadeBody}>
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>
-              Sign in to CampusQR Attend
+              Sign in to your account
             </Text>
 
             <View style={styles.form}>
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: COLORS.card,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: 14,

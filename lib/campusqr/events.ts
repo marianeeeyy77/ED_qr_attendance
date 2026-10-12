@@ -242,3 +242,26 @@ export async function deleteEvent(id: string): Promise<{ error: string | null }>
 export function qrPayload(event: EventRow): string {
   return `CAMPUSQR:${event.qr_token}`;
 }
+
+/**
+ * Rotates an event's QR token (Live Display Mode). Generates a fresh
+ * token server-side via gen_random_uuid() so screenshots expire.
+ * Returns the refreshed row, or an error string.
+ */
+export async function rotateQrToken(id: string): Promise<{ data: EventRow | null; error: string | null }> {
+  // Prefer a server-side rotation RPC when present (kills screenshots).
+  const { error: rpcError } = await supabase.rpc('rotate_qr_token' as never, { p_event_id: id } as never);
+  if (!rpcError) {
+    const row = await getEventById(id);
+    if (row) return { data: row, error: null };
+  }
+  // Fallback: fresh random token via direct update (owner/admin RLS applies).
+  const fresh =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? (crypto as any).randomUUID()
+      : `qr-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const { error: updateError } = await supabase.from('events').update({ qr_token: fresh }).eq('id', id);
+  if (updateError) return { data: null, error: updateError.message };
+  const row = await getEventById(id);
+  return { data: row, error: null };
+}

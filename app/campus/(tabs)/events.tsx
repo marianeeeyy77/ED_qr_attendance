@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,7 +11,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import EmptyState from '@/components/EmptyState';
-import StatusPill, { eventStatusTone } from '@/components/StatusPill';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
@@ -70,6 +69,11 @@ export default function EventsScreen() {
   const visible =
     filter === 'all' ? events : events.filter((event) => event.status === filter);
 
+  const filters = isStaff ? STATUS_FILTERS : (['all', 'open', 'closed'] as Filter[]);
+
+  const pillColor = (option: Filter) =>
+    option === 'open' ? '#10B981' : option === 'closed' ? '#EF4444' : option === 'draft' ? '#2A5BD7' : '#162660';
+
   const handleToggleStatus = async (event: EventRow) => {
     const next: EventStatus = event.status === 'open' ? 'closed' : 'open';
     const { error } = await setEventStatus(event.id, next);
@@ -110,24 +114,63 @@ export default function EventsScreen() {
   }
   return (
     <View style={styles.container}>
-      <View style={styles.filterRow}>
-        {STATUS_FILTERS.map((option) => {
+      <Text style={styles.title}>{isStaff ? 'Manage Events' : 'Events'}</Text>
+      {!isStaff && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+          {filters.map((option) => {
+            const active = filter === option;
+            const color = pillColor(option);
+            return (
+              <AnimatedPressable
+                key={option}
+                style={[styles.filterChip, active && { backgroundColor: color, borderColor: color }]}
+                onPress={() => setFilter(option)}
+                glowColor={COLORS.accent}
+                accessibilityRole="button"
+                accessibilityLabel={option}
+              >
+                <Text style={[styles.filterText, active && styles.filterTextActive]}>
+                  {option === 'all' ? 'All' : option}
+                </Text>
+              </AnimatedPressable>
+            );
+          })}
+        </ScrollView>
+      )}
+      {isStaff && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+        {filters.map((option) => {
           const active = filter === option;
+          const color = pillColor(option);
           return (
-            <Pressable
+            <AnimatedPressable
               key={option}
-              style={[styles.filterChip, active && styles.filterChipActive]}
+              style={[styles.filterChip, active && { backgroundColor: color, borderColor: color }]}
               onPress={() => setFilter(option)}
+              glowColor={COLORS.accent}
               accessibilityRole="button"
+              accessibilityLabel={option}
             >
               <Text style={[styles.filterText, active && styles.filterTextActive]}>
                 {option === 'all' ? 'All' : option}
               </Text>
-            </Pressable>
+            </AnimatedPressable>
           );
         })}
-      </View>
+        </ScrollView>
+      )}
 
+      {isStaff && (
+        <AnimatedPressable
+          style={styles.createButton}
+          onPress={() => router.push('/campus/event-form')}
+          glowColor={COLORS.primary}
+          accessibilityRole="button"
+          accessibilityLabel="Create New Event"
+        >
+          <Text style={styles.createText}>+ Create New Event</Text>
+        </AnimatedPressable>
+      )}
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {visible.length === 0 ? (
           <EmptyState
@@ -138,11 +181,14 @@ export default function EventsScreen() {
         ) : (
           visible.map((event) => {
             const canManage = isStaff && (role === 'admin' || event.created_by === user?.id);
+            const statusColor = event.status === 'open' ? '#10B981' : event.status === 'closed' ? '#EF4444' : '#2A5BD7';
             return (
               <View key={event.id} style={styles.card}>
                 <View style={styles.cardHeader}>
                   <Text style={styles.cardTitle}>{event.name}</Text>
-                  <StatusPill label={event.status} tone={eventStatusTone(event.status)} />
+                  <View style={[styles.statusBadge, { backgroundColor: `${statusColor}22`, borderColor: `${statusColor}55` }]}>
+                    <Text style={[styles.statusText, { color: statusColor }]}>{event.status}</Text>
+                  </View>
                 </View>
                 {event.venue ? <Text style={styles.meta}>{event.venue}</Text> : null}
                 <Text style={styles.meta}>{formatDateTime(event.start_datetime)}</Text>
@@ -150,44 +196,54 @@ export default function EventsScreen() {
                   <Text style={styles.description} numberOfLines={2}>{event.description}</Text>
                 ) : null}
                 <View style={styles.actions}>
-                  <Pressable
-                    style={styles.actionButton}
-                    onPress={() => router.push(`/campus/qr-display?id=${event.id}`)}
-                    accessibilityRole="button"
-                  >
-                    <Ionicons name="qr-code-outline" size={18} color={COLORS.primary} />
-                    <Text style={styles.actionText}>QR</Text>
-                  </Pressable>
+                  {isStaff ? (
+                    <AnimatedPressable
+                      style={styles.qrButton}
+                      onPress={() => router.push(`/campus/qr-display?id=${event.id}`)}
+                      glowColor={COLORS.primary}
+                      accessibilityRole="button"
+                      accessibilityLabel="Display QR Code"
+                    >
+                      <Ionicons name="qr-code-outline" size={18} color="#FFFFFF" />
+                      <Text style={styles.qrText}>QR</Text>
+                    </AnimatedPressable>
+                  ) : null}
                   {canManage && (
                     <>
-                      <Pressable
+                      <AnimatedPressable
                         style={styles.actionButton}
                         onPress={() => router.push(`/campus/event-form?id=${event.id}`)}
+                        glowColor={COLORS.accent}
                         accessibilityRole="button"
+                        accessibilityLabel="Edit event"
                       >
-                        <Ionicons name="create-outline" size={18} color={COLORS.primary} />
+                        <Ionicons name="create-outline" size={18} color="#162660" />
                         <Text style={styles.actionText}>Edit</Text>
-                      </Pressable>
-                      <Pressable
+                      </AnimatedPressable>
+                      <AnimatedPressable
                         style={styles.actionButton}
                         onPress={() => handleToggleStatus(event)}
+                        glowColor={COLORS.accent}
                         accessibilityRole="button"
+                        accessibilityLabel="Toggle status"
                       >
                         <Ionicons
                           name={event.status === 'open' ? 'lock-closed-outline' : 'lock-open-outline'}
                           size={18}
-                          color={COLORS.primary}
+                          color="#162660"
                         />
                         <Text style={styles.actionText}>{event.status === 'open' ? 'Close' : 'Open'}</Text>
-                      </Pressable>
-                      <Pressable
+                      </AnimatedPressable>
+                      <AnimatedPressable
                         style={styles.actionButton}
                         onPress={() => handleDelete(event)}
+                        glowColor={COLORS.danger}
                         accessibilityRole="button"
+                        accessibilityLabel="Delete event"
                       >
-                        <Ionicons name="trash-outline" size={18} color={COLORS.danger} />
+                        <Ionicons name="trash-outline" size={18} color="#EF4444" />
                         <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
-                      </Pressable>
+                      </AnimatedPressable>
                     </>
                   )}
                 </View>
@@ -196,17 +252,6 @@ export default function EventsScreen() {
           })
         )}
       </ScrollView>
-
-      {isStaff && (
-        <Pressable
-          style={styles.fab}
-          onPress={() => router.push('/campus/event-form')}
-          accessibilityRole="button"
-          accessibilityLabel="Create event"
-        >
-          <Ionicons name="add" size={28} color="#FFFFFF" />
-        </Pressable>
-      )}
     </View>
   );
 }
@@ -218,33 +263,43 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center', gap: 12,
   },
   loadingText: { fontSize: 14, color: COLORS.textSecondary },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', textAlign: 'center', paddingTop: 12, paddingBottom: 4 },
+  createButton: {
+    backgroundColor: '#162660', borderRadius: 12, marginHorizontal: 16, paddingVertical: 14, minHeight: 48,
+    alignItems: 'center', justifyContent: 'center', marginVertical: 8,
+  },
+  createText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
   filterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
   filterChip: {
-    minHeight: 44, paddingHorizontal: 16, justifyContent: 'center',
-    borderRadius: 999, backgroundColor: COLORS.card,
-    borderWidth: 1, borderColor: COLORS.border,
+    minHeight: 40, paddingHorizontal: 16, justifyContent: 'center',
+    borderRadius: 999, backgroundColor: 'rgba(255, 253, 247, 0.88)',
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
   },
   filterChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  filterText: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary, textTransform: 'capitalize' },
+  filterText: { fontSize: 14, fontWeight: '600', color: '#4A5878', textTransform: 'capitalize' },
   filterTextActive: { color: '#FFFFFF' },
-  list: { paddingHorizontal: 16, paddingBottom: 96, gap: 12 },
+  list: { paddingHorizontal: 16, paddingBottom: 40, gap: 12 },
   card: {
-    backgroundColor: COLORS.card, borderRadius: 12,
-    borderWidth: 1, borderColor: COLORS.border, padding: 16,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 16,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 },
-  cardTitle: { fontSize: 17, fontWeight: '700', color: COLORS.textPrimary, flex: 1 },
-  meta: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 2 },
-  description: { fontSize: 14, color: COLORS.textPrimary, marginTop: 6, lineHeight: 20 },
-  actions: { flexDirection: 'row', marginTop: 12, gap: 4 },
-  actionButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 4 },
-  actionText: { fontSize: 14, fontWeight: '600', color: COLORS.primary },
-  deleteText: { color: COLORS.danger },
-  fab: {
-    position: 'absolute', right: 20, bottom: 28, width: 60, height: 60,
-    borderRadius: 30, backgroundColor: COLORS.primary,
-    justifyContent: 'center', alignItems: 'center', elevation: 5,
-    shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25, shadowRadius: 6,
+  cardTitle: { fontSize: 17, fontWeight: '700', color: '#162660', flex: 1 },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
+  statusText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
+  meta: { fontSize: 13, color: '#4A5878', marginBottom: 2 },
+  description: { fontSize: 14, color: '#162660', marginTop: 6, lineHeight: 20 },
+  actions: { flexDirection: 'row', marginTop: 12, gap: 6, flexWrap: 'wrap', alignItems: 'center' },
+  qrButton: {
+    minHeight: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 6,
+    backgroundColor: '#162660', borderRadius: 12, justifyContent: 'center',
   },
+  qrText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
+  actionButton: {
+    minHeight: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 4,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+  },
+  actionText: { fontSize: 14, fontWeight: '600', color: '#162660' },
+  deleteText: { color: '#EF4444' },
 });

@@ -97,17 +97,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255, 253, 247, 0.88)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
+    borderColor: 'rgba(22, 38, 96, 0.16)',
   },
   text: {
-    color: '#FFFFFF',
+    color: '#162660',
     fontSize: 14,
     fontWeight: '600',
   },
   hint: {
-    color: '#a5b4fc',
+    color: '#4A5878',
     fontSize: 12,
   },
 });

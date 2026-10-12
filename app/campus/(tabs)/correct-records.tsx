@@ -76,19 +76,27 @@ export default function CorrectRecordsScreen() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Correct Reports</Text>
+        <View style={styles.banner}>
+          <Text style={styles.bannerText}>Admin Manual Override Mode</Text>
+        </View>
         {loading ? (
           <Text style={styles.hint}>Loading events...</Text>
         ) : events.length === 0 ? (
           <Text style={styles.hint}>No events to correct yet.</Text>
         ) : (
           <>
+            <View style={styles.selectorCard}>
+              <Text style={styles.selectorTitle} numberOfLines={1}>
+                {events.find((e) => e.id === selectedId)?.name ?? 'Select event'}
+              </Text>
+            </View>
             <Dropdown
               label="Event"
               value={selectedId}
               options={events.map((event) => ({ label: `${event.name} (${event.status})`, value: event.id }))}
               onChange={setSelectedId}
             />
-            <AttendanceRecords records={records} loading={false} canEdit onChanged={loadRecords} />
+            <AttendanceRecords records={records} loading={false} canEdit={false} overrideMode onChanged={loadRecords} />
           </>
         )}
       </ScrollView>
@@ -98,7 +106,17 @@ export default function CorrectRecordsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 8 },
-  title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 12 },
-  hint: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', paddingVertical: 24 },
+  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginBottom: 12, textAlign: 'center' },
+  hint: { fontSize: 14, color: '#4A5878', textAlign: 'center', paddingVertical: 24 },
+  banner: {
+    backgroundColor: 'rgba(217, 119, 6, 0.14)', borderWidth: 1, borderColor: 'rgba(217, 119, 6, 0.4)',
+    borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14, marginBottom: 12, alignItems: 'center',
+  },
+  bannerText: { color: '#92400E', fontWeight: '700', fontSize: 13 },
+  selectorCard: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 14, marginBottom: 10,
+  },
+  selectorTitle: { fontSize: 16, fontWeight: '700', color: '#162660' },
 });

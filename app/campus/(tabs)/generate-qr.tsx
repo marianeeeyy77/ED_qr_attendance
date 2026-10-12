@@ -1,16 +1,16 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import QRCode from 'react-native-qrcode-svg';
 
+import AnimatedPressable from '@/components/AnimatedPressable';
 import Dropdown from '@/components/Dropdown';
 import EmptyState from '@/components/EmptyState';
-import QRDisplay from '@/components/QRDisplay';
-import StatusPill, { eventStatusTone } from '@/components/StatusPill';
 import { useToast } from '@/components/CampusToast';
-import { COLORS } from '@/constants/colors';
+import { COLORS, SLATE } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
-import { listVisibleEvents, qrPayload } from '@/lib/campusqr/events';
+import { listVisibleEvents, qrPayload, rotateQrToken } from '@/lib/campusqr/events';
 import { formatDateTime } from '@/lib/campusqr/format';
 import {
   useCampusRealtime,
@@ -29,11 +29,13 @@ export default function GenerateQrScreen() {
   const { user } = useAuth();
   const { role, loading: roleLoading } = useCampusRole();
   const toast = useToast();
+  const router = useRouter();
   const onStatus = useRealtimeStatusToast(toast);
 
   const [events, setEvents] = useState<EventRow[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [loading, setLoading] = useState(true);
+  const [rotation, setRotation] = useState(0);
 
   const load = useCallback(async () => {
     const rows = await listVisibleEvents(role, user?.id ?? null);
@@ -51,6 +53,25 @@ export default function GenerateQrScreen() {
       load();
     }, [load])
   );
+
+  // Rotate the active event every 30s when the screen is visible.
+  useEffect(() => {
+    if (role !== 'teacher') return;
+    const interval = setInterval(async () => {
+      if (!selectedId) return;
+      const { data, error } = await rotateQrToken(selectedId);
+      if (error) {
+        toast.error(`Rotation failed: ${error}`);
+        return;
+      }
+      if (data) {
+        setSelectedId(data.id);
+        setRotation((r) => r + 1);
+        toast.info('QR rotated');
+      }
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, [role, selectedId, toast]);
 
   useCampusRealtime(
     (change) => {
@@ -88,28 +109,84 @@ export default function GenerateQrScreen() {
 
             {selected ? (
               <>
-                <View style={styles.header}>
-                  <Text style={styles.eventName}>{selected.name}</Text>
-                  <StatusPill label={selected.status} tone={eventStatusTone(selected.status)} />
-                </View>
-                <Text style={styles.meta}>{formatDateTime(selected.start_datetime)}</Text>
-                {selected.venue ? <Text style={styles.meta}>{selected.venue}</Text> : null}
-
-                {selected.status !== 'open' ? (
-                  <View style={styles.guard}>
-                    <Ionicons name="information-circle-outline" size={18} color={COLORS.warning} />
-                    <Text style={styles.guardText}>
-                      Open the event first — students can only check in while it is open.
+                <View style={styles.selectorCard}>
+                  <Text style={styles.selectorTitle} numberOfLines={1}>{selected.name}</Text>
+                  <View style={[styles.badge, selected.status === 'open' ? styles.badgeOpen : styles.badgeClosed]}>
+                    <Text style={[styles.badgeText, selected.status === 'open' ? styles.badgeOpenText : styles.badgeClosedText]}>
+                      {selected.status}
                     </Text>
                   </View>
-                ) : null}
-
-                <View style={styles.qrWrap}>
-                  <QRDisplay
-                    value={qrPayload(selected)}
-                    size={264}
-                    caption={`${qrPayload(selected)} — students scan this or type the code in Scan QR.`}
-                  />
+                </View>
+                <View style={styles.mainCard}>
+                  <Text style={styles.eventName}>{selected.name}</Text>
+                  <Text style={styles.meta}>{formatDateTime(selected.start_datetime)}</Text>
+                  {selected.venue ? <Text style={styles.meta}>{selected.venue}</Text> : null}
+                  {selected.status !== 'open' ? (
+                    <View style={styles.guard}>
+                      <Ionicons name="information-circle-outline" size={18} color={COLORS.warning} />
+                      <Text style={styles.guardText}>
+                        Open the event first — students can only check in while it is open.
+                      </Text>
+                    </View>
+                  ) : null}
+                  <View style={styles.qrPad}>
+                    <QRCode
+                      value={qrPayload(selected)}
+                      size={230}
+                      backgroundColor="#FFFFFF"
+                      color="#0F172A"
+                      quietZone={8}
+                      ecl="H"
+                    />
+                  </View>
+                  <View style={styles.codePill}>
+                    <Text style={styles.codeText}>{qrPayload(selected)}</Text>
+                  </View>
+                  <View style={styles.qrMetaRow}>
+                    <View style={[styles.badge, { backgroundColor: `${SLATE.indigo}22` }]}>
+                      <Text style={[styles.badgeText, { color: SLATE.indigo }]}>Rotation {rotation}</Text>
+                    </View>
+                    <View style={styles.tipRow}>
+                      <Ionicons name="time" size={14} color="#4A5878" />
+                      <Text style={styles.tipText}>Auto-rotates every 30 seconds when open</Text>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.actionRow}>
+                  <AnimatedPressable
+                    style={[styles.actionBtn, { backgroundColor: '#162660' }]}
+                    onPress={() => router.push(`/campus/qr-display?id=${selected.id}`)}
+                    glowColor={COLORS.primary}
+                    accessibilityRole="button"
+                    accessibilityLabel="Fullscreen"
+                  >
+                    <Ionicons name="expand-outline" size={18} color="#FFFFFF" />
+                    <Text style={styles.actionBtnText}>Fullscreen</Text>
+                  </AnimatedPressable>
+                  <AnimatedPressable
+                    style={[styles.actionBtn, { backgroundColor: '#2A5BD7' }]}
+                    onPress={() => toast.info('Type the code shown into the Scan screen.')}
+                    glowColor="#2A5BD7"
+                    accessibilityRole="button"
+                    accessibilityLabel="Copy Code"
+                  >
+                    <Ionicons name="copy-outline" size={18} color="#FFFFFF" />
+                    <Text style={styles.actionBtnText}>Copy Code</Text>
+                  </AnimatedPressable>
+                  <AnimatedPressable
+                    style={[styles.actionBtn, styles.rotateBtn]}
+                    onPress={async () => {
+                      const { data, error } = await rotateQrToken(selected.id);
+                      if (error) { toast.error(`Rotation failed: ${error}`); return; }
+                      if (data) { setSelectedId(data.id); setRotation((r) => r + 1); toast.info('QR rotated'); }
+                    }}
+                    glowColor={COLORS.warning}
+                    accessibilityRole="button"
+                    accessibilityLabel="Rotate QR"
+                  >
+                    <Ionicons name="refresh" size={18} color="#FFFFFF" />
+                    <Text style={[styles.actionBtnText, styles.rotateText]}>Rotate Now</Text>
+                  </AnimatedPressable>
                 </View>
               </>
             ) : null}
@@ -122,17 +199,56 @@ export default function GenerateQrScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 8, alignItems: 'stretch' },
-  title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 12 },
+  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12, alignItems: 'stretch' },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginBottom: 12, textAlign: 'center' },
   hint: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', paddingVertical: 24 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8, marginBottom: 4 },
-  eventName: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, flex: 1 },
-  meta: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 2 },
+  selectorCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 14, marginBottom: 12,
+  },
+  selectorTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#162660' },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
+  badgeOpen: { backgroundColor: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.4)' },
+  badgeClosed: { backgroundColor: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.35)' },
+  badgeText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
+  badgeOpenText: { color: '#10B981' },
+  badgeClosedText: { color: '#EF4444' },
+  mainCard: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 16, alignItems: 'center',
+  },
+  eventName: { fontSize: 20, fontWeight: '700', color: '#162660', textAlign: 'center' },
+  meta: { fontSize: 13, color: '#4A5878', marginBottom: 2, textAlign: 'center' },
   guard: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12,
-    backgroundColor: COLORS.card, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border,
-    paddingHorizontal: 12, paddingVertical: 10,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 12, paddingVertical: 10, width: '100%',
   },
-  guardText: { flex: 1, fontSize: 13, color: COLORS.textSecondary, lineHeight: 18 },
-  qrWrap: { marginTop: 20, width: '100%' },
+  guardText: { flex: 1, fontSize: 13, color: '#4A5878', lineHeight: 18 },
+  qrPad: {
+    marginTop: 16, backgroundColor: '#FFFFFF', padding: 14, borderRadius: 16,
+    borderWidth: 1.5, borderColor: 'rgba(22, 38, 96, 0.2)',
+  },
+  codePill: {
+    marginTop: 14, backgroundColor: 'rgba(255, 253, 247, 0.88)', padding: 10,
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    width: '100%',
+  },
+  codeText: { color: '#162660', fontWeight: '700', textAlign: 'center', fontSize: 13 },
+  actionRow: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  actionBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 8, borderRadius: 12, paddingVertical: 13, minHeight: 48,
+  },
+  actionBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+  rotateText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+  rotateBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 8, borderRadius: 12, paddingVertical: 13, minHeight: 48,
+    backgroundColor: '#F59E0B',
+  },
+  qrMetaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12 },
+  tipRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, justifyContent: 'center' },
+  tipText: { fontSize: 12, color: '#4A5878', textAlign: 'center' },
 });

@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,12 +12,12 @@ import {
 import { useFocusEffect } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
+import AnimatedPressable from '@/components/AnimatedPressable';
 import BusyButton from '@/components/BusyButton';
 import Dropdown from '@/components/Dropdown';
 import EducationFields from '@/components/EducationFields';
 import EmptyState from '@/components/EmptyState';
 import LockedView from '@/components/LockedView';
-import StatusPill, { roleTone } from '@/components/StatusPill';
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
@@ -44,6 +43,7 @@ import { useCampusRole } from '@/lib/campusqr/roles';
 import type { Profile, UserRole } from '@/types/database';
 
 const ROLE_ACTIONS: UserRole[] = ['student', 'teacher', 'admin'];
+void ROLE_ACTIONS;
 
 type EditState = {
   target: Profile;
@@ -69,6 +69,7 @@ export default function ManageUsersScreen() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [userFilter, setUserFilter] = useState('All');
   const [edit, setEdit] = useState<EditState | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
 
@@ -96,6 +97,10 @@ export default function ManageUsersScreen() {
   }
 
   const filtered = users.filter((row) => {
+    if (userFilter === 'Students' && row.role !== 'student') return false;
+    if (userFilter === 'Teachers' && row.role !== 'teacher') return false;
+    if (userFilter === 'Admins' && row.role !== 'admin') return false;
+    if (userFilter === 'Pending' && row.is_active) return false;
     const query = search.trim().toLowerCase();
     if (!query) return true;
     return (
@@ -104,6 +109,9 @@ export default function ManageUsersScreen() {
       (row.student_no ?? '').toLowerCase().includes(query)
     );
   });
+
+  const roleBadgeColor = (r: string) =>
+    r === 'student' ? '#162660' : r === 'teacher' ? '#10B981' : '#F59E0B';
 
   const openEdit = (target: Profile) => {
     setEdit({
@@ -238,15 +246,30 @@ export default function ManageUsersScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Manage Users</Text>
       <View style={styles.searchWrap}>
-        <Ionicons name="search-outline" size={18} color={COLORS.textSecondary} />
+        <Ionicons name="search-outline" size={18} color="#4A5878" />
         <TextInput
           style={styles.search}
           value={search}
           onChangeText={setSearch}
-          placeholder="Search name, email or student no."
-          placeholderTextColor={COLORS.textSecondary}
+          placeholder="Search name, email, or ID..."
+          placeholderTextColor="#4A5878"
         />
       </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillRow}>
+        {['All', 'Students', 'Teachers', 'Admins', 'Pending'].map((option) => {
+          const active = userFilter === option;
+          return (
+            <AnimatedPressable
+              key={option}
+              style={[styles.chip, active && styles.chipActive]}
+              onPress={() => setUserFilter(option)}
+              accessibilityRole="button"
+            >
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>{option}</Text>
+            </AnimatedPressable>
+          );
+        })}
+      </ScrollView>
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {filtered.length === 0 ? (
           <EmptyState icon="people-outline" title="No users found..."
@@ -256,42 +279,34 @@ export default function ManageUsersScreen() {
             <View key={row.id} style={styles.card}>
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle} numberOfLines={1}>{row.full_name || row.email}</Text>
-                <StatusPill label={row.role} tone={roleTone(row.role)} />
+                <View style={[styles.roleBadge, { backgroundColor: `${roleBadgeColor(row.role)}22`, borderColor: `${roleBadgeColor(row.role)}55` }]}>
+                  <Text style={[styles.roleText, { color: roleBadgeColor(row.role) }]}>{row.role}</Text>
+                </View>
               </View>
               <Text style={styles.meta}>{row.email}</Text>
-              <Text style={[styles.meta, row.is_active ? styles.active : styles.inactive]}>
-                {row.is_active ? 'Active' : 'Inactive'}
-              </Text>
-              <View style={styles.row}>
-                {ROLE_ACTIONS.map((option) => (
-                  <Pressable
-                    key={option}
-                    style={[styles.chip, row.role === option && styles.chipActive]}
-                    onPress={() => handleRole(row, option)}
-                  >
-                    <Text style={[styles.chipText, row.role === option && styles.chipTextActive]}>
-                      {option}
-                    </Text>
-                  </Pressable>
-                ))}
+              <View style={styles.statusRow}>
+                <View style={[styles.dot, { backgroundColor: row.is_active ? '#10B981' : '#EF4444' }]} />
+                <Text style={[styles.meta, row.is_active ? styles.active : styles.inactive]}>
+                  {row.is_active ? 'Active' : 'Inactive'}
+                </Text>
               </View>
               <View style={styles.actions}>
-                <Pressable style={styles.actionButton} onPress={() => openEdit(row)}>
-                  <Ionicons name="create-outline" size={18} color={COLORS.primary} />
-                  <Text style={styles.actionText}>Edit</Text>
-                </Pressable>
-                <Pressable style={styles.actionButton} onPress={() => handleToggleActive(row)}>
+                <AnimatedPressable glowColor={COLORS.primary} style={[styles.actionButton, styles.editBtn]} onPress={() => openEdit(row)} accessibilityRole="button">
+                  <Ionicons name="create-outline" size={16} color="#FFFFFF" />
+                  <Text style={styles.actionBtnText}>Edit Role</Text>
+                </AnimatedPressable>
+                <AnimatedPressable glowColor={COLORS.warning} style={[styles.actionButton, styles.deactBtn]} onPress={() => handleToggleActive(row)} accessibilityRole="button">
                   <Ionicons
                     name={row.is_active ? 'pause-circle-outline' : 'play-circle-outline'}
-                    size={18}
-                    color={COLORS.primary}
+                    size={16}
+                    color="#FFFFFF"
                   />
-                  <Text style={styles.actionText}>{row.is_active ? 'Deactivate' : 'Activate'}</Text>
-                </Pressable>
-                <Pressable style={styles.actionButton} onPress={() => handleDelete(row)}>
-                  <Ionicons name="trash-outline" size={18} color={COLORS.danger} />
-                  <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
-                </Pressable>
+                  <Text style={styles.actionBtnText}>{row.is_active ? 'Deactivate' : 'Activate'}</Text>
+                </AnimatedPressable>
+                <AnimatedPressable glowColor={COLORS.danger} style={[styles.actionButton, styles.delBtn]} onPress={() => handleDelete(row)} accessibilityRole="button">
+                  <Ionicons name="trash-outline" size={16} color="#FFFFFF" />
+                  <Text style={styles.actionBtnText}>Delete</Text>
+                </AnimatedPressable>
               </View>
             </View>
           ))
@@ -335,9 +350,9 @@ export default function ManageUsersScreen() {
                   {editError && <Text style={styles.error}>{editError}</Text>}
                   <BusyButton title="Save Changes" loadingTitle="Saving..."
                     icon="checkmark-outline" onPress={handleSaveEdit} loading={edit.saving} />
-                  <Pressable style={styles.closeButton} onPress={() => setEdit(null)}>
+                  <AnimatedPressable glowColor={COLORS.accent} style={styles.closeButton} onPress={() => setEdit(null)}>
                     <Text style={styles.closeText}>Close</Text>
-                  </Pressable>
+                  </AnimatedPressable>
                 </>
               )}
             </ScrollView>
@@ -351,50 +366,56 @@ export default function ManageUsersScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   center: { flex: 1, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', gap: 10 },
-  hint: { fontSize: 14, color: COLORS.textSecondary },
-  title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary, marginHorizontal: 16, marginBottom: 12 },
+  hint: { fontSize: 14, color: '#4A5878' },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginHorizontal: 16, marginBottom: 12, textAlign: 'center', paddingTop: 12 },
   searchWrap: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginBottom: 8,
-    backgroundColor: COLORS.card, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
     paddingHorizontal: 12, minHeight: 48,
   },
-  search: { flex: 1, fontSize: 15, color: COLORS.textPrimary, minHeight: 44 },
+  search: { flex: 1, fontSize: 15, color: '#162660', minHeight: 44 },
+  pillRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 10 },
   list: { paddingHorizontal: 16, paddingBottom: 40, gap: 12 },
-  card: { backgroundColor: COLORS.card, borderRadius: 12, borderWidth: 1, borderColor: COLORS.border, padding: 14 },
+  card: { backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 14 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: COLORS.textPrimary, flex: 1 },
-  meta: { fontSize: 13, color: COLORS.textSecondary, marginTop: 2 },
-  active: { color: COLORS.success, fontWeight: '600' },
-  inactive: { color: COLORS.danger, fontWeight: '600' },
-  row: { flexDirection: 'row', gap: 6, marginTop: 10 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: '#162660', flex: 1 },
+  roleBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, borderWidth: 1 },
+  roleText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
+  meta: { fontSize: 13, color: '#4A5878', marginTop: 2 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  active: { color: '#10B981', fontWeight: '600' },
+  inactive: { color: '#EF4444', fontWeight: '600' },
   chip: {
-    minHeight: 44, paddingHorizontal: 12, justifyContent: 'center', borderRadius: 999,
-    borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.background,
+    minHeight: 40, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 999,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', backgroundColor: 'rgba(255, 253, 247, 0.88)',
   },
-  chipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  chipText: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, textTransform: 'capitalize' },
+  chipActive: { backgroundColor: '#162660', borderColor: '#162660' },
+  chipText: { fontSize: 13, fontWeight: '600', color: '#4A5878', textTransform: 'capitalize' },
   chipTextActive: { color: '#FFFFFF' },
-  actions: { flexDirection: 'row', marginTop: 6, gap: 2 },
-  actionButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, gap: 4 },
-  actionText: { fontSize: 14, fontWeight: '600', color: COLORS.primary },
-  deleteText: { color: COLORS.danger },
+  actions: { flexDirection: 'row', marginTop: 10, gap: 8 },
+  actionButton: { flex: 1, minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8, gap: 5, borderRadius: 12 },
+  editBtn: { backgroundColor: '#162660' },
+  deactBtn: { backgroundColor: 'rgba(245,158,11,0.85)' },
+  delBtn: { backgroundColor: 'rgba(239,68,68,0.85)' },
+  actionBtnText: { color: '#FFFFFF' },
   backdrop: { flex: 1, backgroundColor: COLORS.scrim, justifyContent: 'center', paddingHorizontal: 20 },
   sheet: {
-    backgroundColor: COLORS.modal, borderRadius: 14, maxHeight: '88%',
-    borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: '#FFFBF2', borderRadius: 20, maxHeight: '88%',
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
     shadowColor: COLORS.shadow, shadowOpacity: 0.5, shadowRadius: 24,
     shadowOffset: { width: 0, height: 12 }, elevation: 12,
   },
   sheetScroll: { padding: 18, paddingBottom: 28 },
-  sheetTitle: { fontSize: 20, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 8 },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: COLORS.primary, marginTop: 12, marginBottom: 4 },
-  label: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary, marginBottom: 6, marginTop: 8 },
+  sheetTitle: { fontSize: 20, fontWeight: '700', color: '#162660', marginBottom: 8 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#2A3F8F', marginTop: 12, marginBottom: 4 },
+  label: { fontSize: 14, fontWeight: '600', color: '#162660', marginBottom: 6, marginTop: 8 },
   input: {
-    backgroundColor: COLORS.background, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border,
-    paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: COLORS.textPrimary,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 14, paddingVertical: 12, minHeight: 48, fontSize: 16, color: '#162660',
   },
   readonly: { opacity: 0.7 },
   error: { fontSize: 14, color: COLORS.danger, textAlign: 'center', marginTop: 10 },
-  closeButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  closeText: { fontSize: 15, fontWeight: '600', color: COLORS.primary },
+  closeButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  closeText: { fontSize: 15, fontWeight: '600', color: '#162660' },
 });

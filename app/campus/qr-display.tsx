@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import AnimatedPressable from '@/components/AnimatedPressable';
 import QRDisplay from '@/components/QRDisplay';
 import StatusPill, { eventStatusTone } from '@/components/StatusPill';
 import { useToast } from '@/components/CampusToast';
@@ -83,9 +83,9 @@ export default function CampusQrDisplayScreen() {
         ) : !event ? (
           <View style={styles.center}>
             <Text style={styles.title}>Event not found</Text>
-            <Pressable style={styles.secondaryButton} onPress={() => router.back()}>
+            <AnimatedPressable style={styles.secondaryButton} onPress={() => router.back()}>
               <Text style={styles.secondaryText}>Go back</Text>
-            </Pressable>
+            </AnimatedPressable>
           </View>
         ) : (
           <>
@@ -98,11 +98,11 @@ export default function CampusQrDisplayScreen() {
             <View style={styles.qrWrap}>
               <QRDisplay value={qrPayload(event)} size={264} caption={qrPayload(event)} />
             </View>
-            <Pressable style={styles.secondaryButton} onPress={handleCopy}>
+            <AnimatedPressable style={styles.secondaryButton} onPress={handleCopy}>
               <Ionicons name="keypad-outline" size={18} color={COLORS.primary} />
               <Text style={styles.secondaryText}>How do students check in?</Text>
-            </Pressable>
-            <Pressable style={styles.secondaryButton} onPress={handleToggle} disabled={busy}>
+            </AnimatedPressable>
+            <AnimatedPressable style={styles.secondaryButton} onPress={handleToggle} disabled={busy}>
               <Ionicons
                 name={event.status === 'open' ? 'lock-closed-outline' : 'lock-open-outline'}
                 size={18}
@@ -111,7 +111,7 @@ export default function CampusQrDisplayScreen() {
               <Text style={styles.secondaryText}>
                 {busy ? 'Working...' : event.status === 'open' ? 'Close event' : 'Open event'}
               </Text>
-            </Pressable>
+            </AnimatedPressable>
           </>
         )}
       </ScrollView>
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   secondaryButton: {
     minHeight: 48, width: '100%', flexDirection: 'row', gap: 8,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: COLORS.card, borderRadius: 10,
+    backgroundColor: COLORS.card, borderRadius: 12,
     borderWidth: 1, borderColor: COLORS.border, marginBottom: 10,
   },
   secondaryText: { fontSize: 15, fontWeight: '600', color: COLORS.primary },

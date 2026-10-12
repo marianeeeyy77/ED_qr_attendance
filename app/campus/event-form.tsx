@@ -157,15 +157,15 @@ export default function CampusEventFormScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   flex: { flex: 1 },
-  scroll: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8 },
-  title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 16 },
-  label: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary, marginBottom: 6, marginTop: 10 },
+  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginBottom: 12, textAlign: 'center' },
+  label: { fontSize: 14, fontWeight: '600', color: '#162660', marginBottom: 6, marginTop: 10 },
   input: {
-    backgroundColor: COLORS.card, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border,
-    paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: COLORS.textPrimary,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: '#162660',
   },
   multiline: { minHeight: 88, textAlignVertical: 'top' },
-  hint: { fontSize: 13, color: COLORS.textSecondary, marginTop: 8 },
+  hint: { fontSize: 13, color: '#4A5878', marginTop: 8, textAlign: 'center' },
   error: { fontSize: 14, color: COLORS.danger, textAlign: 'center', marginTop: 12 },
-  actions: { marginTop: 24 },
+  actions: { marginTop: 24, alignItems: 'center' },
 });

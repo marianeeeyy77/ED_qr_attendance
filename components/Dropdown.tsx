@@ -2,14 +2,13 @@ import { useState } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   Modal,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
+import AnimatedPressable from '@/components/AnimatedPressable';
 import { COLORS } from '@/constants/colors';
 
 export type DropdownOption = { label: string; value: string };
@@ -26,7 +25,9 @@ type Props = {
 
 /**
  * Simple modal dropdown built from core RN primitives (no new
- * dependencies). Touch targets are at least 44dp.
+ * dependencies). Touch targets are at least 44dp. The trigger and each
+ * option use AnimatedPressable for the shared press/hover motion; the
+ * sheet slides up.
  */
 export default function Dropdown({
   label,
@@ -44,11 +45,12 @@ export default function Dropdown({
   return (
     <View style={styles.wrapper}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <Pressable
+      <AnimatedPressable
         style={[styles.field, disabled && styles.disabled]}
         onPress={() => !disabled && setOpen(true)}
         disabled={disabled}
-        accessibilityRole="button"
+        glowColor={COLORS.accent}
+        accessibilityLabel={label ?? placeholder}
       >
         <Text
           style={[styles.value, !selected && styles.placeholder]}
@@ -61,34 +63,32 @@ export default function Dropdown({
           size={18}
           color={COLORS.textSecondary}
         />
-      </Pressable>
+      </AnimatedPressable>
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <Modal
         visible={open}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setOpen(false)}
       >
-        <Pressable
-          style={styles.backdrop}
-          onPress={() => setOpen(false)}
-          accessibilityRole="button"
-        >
-          <Pressable style={styles.sheet} onPress={() => {}}>
+        <View style={styles.backdrop}>
+          <View style={styles.sheet}>
             <Text style={styles.sheetTitle}>{label ?? placeholder}</Text>
             <ScrollView style={styles.list} bounces={false}>
               {options.map((option) => {
                 const active = option.value === value;
                 return (
-                  <TouchableOpacity
+                  <AnimatedPressable
                     key={option.value || '__placeholder'}
                     style={[styles.option, active && styles.optionActive]}
                     onPress={() => {
                       onChange(option.value);
                       setOpen(false);
                     }}
+                    glowColor={COLORS.accent}
                     accessibilityRole="button"
+                    accessibilityLabel={option.label}
                   >
                     <Text
                       style={[
@@ -105,19 +105,20 @@ export default function Dropdown({
                         color={COLORS.primary}
                       />
                     ) : null}
-                  </TouchableOpacity>
+                  </AnimatedPressable>
                 );
               })}
             </ScrollView>
-            <Pressable
+            <AnimatedPressable
               style={styles.closeButton}
               onPress={() => setOpen(false)}
+              glowColor={COLORS.accent}
               accessibilityRole="button"
             >
               <Text style={styles.closeText}>Close</Text>
-            </Pressable>
-          </Pressable>
-        </Pressable>
+            </AnimatedPressable>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -136,8 +137,8 @@ const styles = StyleSheet.create({
   },
   field: {
     minHeight: 48,
-    backgroundColor: COLORS.dark,
-    borderRadius: 10,
+    backgroundColor: COLORS.frosted,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: 14,
@@ -171,13 +172,13 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: COLORS.modal,
-    borderRadius: 14,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingVertical: 12,
     maxHeight: '75%',
     shadowColor: COLORS.shadow,
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.35,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 12 },
     elevation: 12,
@@ -200,10 +201,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: COLORS.borderSoft,
   },
   optionActive: {
-    backgroundColor: `${COLORS.primary}55`,
+    backgroundColor: `${COLORS.accent}88`,
   },
   optionText: {
     fontSize: 16,

@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   Share,
   StyleSheet,
@@ -10,9 +9,9 @@ import {
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
+import AnimatedPressable from '@/components/AnimatedPressable';
 import EmptyState from '@/components/EmptyState';
 import LockedView from '@/components/LockedView';
-import StatusPill, { attendanceStatusTone } from '@/components/StatusPill';
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
@@ -98,7 +97,7 @@ export default function SystemReportsScreen() {
     setSharing(true);
     try {
       await Share.share({
-        title: 'CampusQR attendance report',
+        title: 'School Attendance System report',
         message: summariesToCsv(summaries),
       });
     } catch {
@@ -116,25 +115,32 @@ export default function SystemReportsScreen() {
     },
     { total: 0, counts: { present: 0, late: 0, absent: 0, excused: 0 } as Record<AttendanceStatus, number> }
   );
+  const [mode, setMode] = useState<'reports' | 'audit'>('reports');
+  const gridColor = (s: AttendanceStatus) =>
+    s === 'present' ? '#10B981' : s === 'late' ? '#F59E0B' : s === 'absent' ? '#EF4444' : '#2A5BD7';
+  const rate = totals.total > 0 ? Math.round(((totals.counts.present + totals.counts.late) / totals.total) * 100) : 0;
+  const title = isAdmin ? 'System Reports' : 'Summaries';
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{isAdmin ? 'System Reports' : 'Summaries'}</Text>
-          <Pressable
-            style={[styles.shareButton, sharing && styles.disabled]}
-            onPress={handleShare}
-            disabled={sharing}
-            accessibilityRole="button"
-          >
-            <Text style={styles.shareText}>{sharing ? 'Sharing...' : 'Export CSV'}</Text>
-          </Pressable>
-        </View>
-        <View style={styles.periodRow}>
+        <Text style={styles.title}>{title}</Text>
+        {isAdmin ? (
+          <View style={styles.segment}>
+            <AnimatedPressable style={[styles.segBtn, mode === 'reports' && styles.segActive]} onPress={() => setMode('reports')} accessibilityRole="button">
+              <Text style={[styles.segText, mode === 'reports' && styles.segTextActive]}>Attendance Reports</Text>
+            </AnimatedPressable>
+            <AnimatedPressable style={[styles.segBtn, mode === 'audit' && styles.segActive]} onPress={() => setMode('audit')} accessibilityRole="button">
+              <Text style={[styles.segText, mode === 'audit' && styles.segTextActive]}>Audit Logs</Text>
+            </AnimatedPressable>
+          </View>
+        ) : null}
+        {(!isAdmin || mode === 'reports') ? (
+        <>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.periodRow}>
           {PERIOD_OPTIONS.map((option) => {
             const active = period === option.value;
             return (
-              <Pressable
+              <AnimatedPressable
                 key={option.value}
                 style={[styles.periodChip, active && styles.periodChipActive]}
                 onPress={() => setPeriod(option.value)}
@@ -143,10 +149,33 @@ export default function SystemReportsScreen() {
                 <Text style={[styles.periodText, active && styles.periodTextActive]}>
                   {option.label}
                 </Text>
-              </Pressable>
+              </AnimatedPressable>
             );
           })}
+        </ScrollView>
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionTitle}>{isAdmin ? 'Overall System Metrics' : 'Overall Overview'}</Text>
+          <AnimatedPressable
+            style={[styles.shareButton, sharing && styles.disabled]}
+            onPress={handleShare}
+            disabled={sharing}
+            accessibilityRole="button"
+          >
+            <Text style={styles.shareText}>{sharing ? 'Sharing...' : 'Export CSV'}</Text>
+          </AnimatedPressable>
         </View>
+        <View style={styles.totalsCard}>
+          <Text style={styles.cardTitle}>Total check-ins: {formatNumber(totals.total)} • {rate}% attendance rate</Text>
+          <View style={styles.grid4}>
+            {STATUS_ORDER.map((status) => (
+              <View key={status} style={styles.gridCell}>
+                <Text style={[styles.gridNum, { color: gridColor(status) }]}>{totals.counts[status]}</Text>
+                <Text style={styles.gridLabel}>{status}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+        {(isAdmin || true) && <Text style={styles.sectionTitle}>Event Breakdown</Text>}
         {loading ? (
           <View style={styles.loadingBox}>
             <ActivityIndicator size="large" color={COLORS.primary} />
@@ -160,29 +189,16 @@ export default function SystemReportsScreen() {
           />
         ) : (
           <>
-            <View style={styles.totalsCard}>
-              <Text style={styles.cardTitle}>Total check-ins: {formatNumber(totals.total)}</Text>
-              <View style={styles.pillRow}>
-                {STATUS_ORDER.map((status) => (
-                  <StatusPill
-                    key={status}
-                    label={`${status}: ${totals.counts[status]}`}
-                    tone={attendanceStatusTone(status)}
-                  />
-                ))}
-              </View>
-            </View>
             {summaries.map((summary) => (
               <View key={summary.eventId} style={styles.card}>
                 <Text style={styles.cardTitle}>{summary.name}</Text>
                 <Text style={styles.hint}>{formatDate(summary.start)}</Text>
-                <View style={styles.pillRow}>
+                <View style={styles.grid4}>
                   {STATUS_ORDER.map((status) => (
-                    <StatusPill
-                      key={status}
-                      label={`${status}: ${summary.counts[status]}`}
-                      tone={attendanceStatusTone(status)}
-                    />
+                    <View key={status} style={styles.gridCell}>
+                      <Text style={[styles.gridNum, { color: gridColor(status) }]}>{summary.counts[status]}</Text>
+                      <Text style={styles.gridLabel}>{status}</Text>
+                    </View>
                   ))}
                 </View>
                 <Text style={styles.total}>Total: {formatNumber(summary.total)}</Text>
@@ -190,7 +206,9 @@ export default function SystemReportsScreen() {
             ))}
           </>
         )}
-        {isAdmin && (
+        </>
+        ) : null}
+        {isAdmin && mode === 'audit' ? (
           <>
             <Text style={styles.sectionTitle}>System Activity Log</Text>
             {audit.length === 0 ? (
@@ -200,18 +218,14 @@ export default function SystemReportsScreen() {
                 <View key={entry.id} style={styles.logCard}>
                   <Text style={styles.logAction}>{entry.action ?? '(no action)'}</Text>
                   <Text style={styles.hint}>
-                    {entry.entity ?? ''} {entry.entity_id ?? ''} — {formatDateTime(entry.created_at)}
+                    {entry.actor ? `${entry.actor.full_name} (${entry.actor.email})` : 'System'} • {entry.entity ?? 'event'}
                   </Text>
-                  {entry.actor ? (
-                    <Text style={styles.hint}>
-                      {entry.actor.full_name} ({entry.actor.email})
-                    </Text>
-                  ) : null}
+                  <Text style={styles.hint}>{formatDateTime(entry.created_at)}</Text>
                 </View>
               ))
             )}
           </>
-        )}
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -219,41 +233,53 @@ export default function SystemReportsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 8, gap: 12 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary, flex: 1 },
+  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12, gap: 12 },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', textAlign: 'center' },
+  segment: {
+    flexDirection: 'row', backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 4, marginHorizontal: 0,
+  },
+  segBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', minHeight: 40, borderRadius: 999 },
+  segActive: { backgroundColor: '#162660' },
+  segText: { fontSize: 13, fontWeight: '600', color: '#4A5878' },
+  segTextActive: { color: '#FFFFFF' },
+  sectionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   shareButton: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
     minHeight: 44, paddingHorizontal: 16, justifyContent: 'center',
-    borderRadius: 10, backgroundColor: COLORS.primary,
+    borderRadius: 12, backgroundColor: '#162660',
   },
-  shareText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
+  shareText: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
   disabled: { opacity: 0.6 },
-  periodRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  periodRow: { flexDirection: 'row', gap: 8, paddingRight: 8 },
   periodChip: {
-    minHeight: 44, paddingHorizontal: 14, justifyContent: 'center',
-    borderRadius: 999, backgroundColor: COLORS.card,
-    borderWidth: 1, borderColor: COLORS.border,
+    minHeight: 40, paddingHorizontal: 14, justifyContent: 'center',
+    borderRadius: 999, backgroundColor: 'rgba(255, 253, 247, 0.88)',
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
   },
-  periodChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  periodText: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
+  periodChipActive: { backgroundColor: '#162660', borderColor: '#162660' },
+  periodText: { fontSize: 13, fontWeight: '600', color: '#4A5878' },
   periodTextActive: { color: '#FFFFFF' },
   loadingBox: { alignItems: 'center', paddingVertical: 48, gap: 12 },
-  hint: { fontSize: 13, color: COLORS.textSecondary },
+  hint: { fontSize: 13, color: '#4A5878' },
   totalsCard: {
-    backgroundColor: COLORS.card, borderRadius: 12,
-    borderWidth: 1, borderColor: COLORS.border, padding: 16, gap: 10,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 16, gap: 12,
   },
   card: {
-    backgroundColor: COLORS.card, borderRadius: 12,
-    borderWidth: 1, borderColor: COLORS.border, padding: 16, gap: 8,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 16, gap: 8,
   },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: COLORS.textPrimary },
-  pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  total: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginTop: 8 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: '#162660' },
+  grid4: { flexDirection: 'row', gap: 8 },
+  gridCell: { flex: 1, alignItems: 'center', paddingVertical: 8 },
+  gridNum: { fontSize: 20, fontWeight: '700', color: '#162660' },
+  gridLabel: { fontSize: 11, color: '#4A5878', textTransform: 'capitalize', marginTop: 2 },
+  total: { fontSize: 14, fontWeight: '600', color: '#162660' },
+  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#162660', marginTop: 8 },
   logCard: {
-    backgroundColor: COLORS.card, borderRadius: 12,
-    borderWidth: 1, borderColor: COLORS.border, padding: 14, gap: 4,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 16, gap: 4,
   },
-  logAction: { fontSize: 15, fontWeight: '700', color: COLORS.textPrimary },
+  logAction: { fontSize: 15, fontWeight: '700', color: '#162660' },
 });

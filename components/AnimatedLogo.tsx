@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import Gradient from '@/components/Gradient';
 import { DEPTH, GRADIENTS } from '@/constants/colors';
@@ -13,15 +13,15 @@ type Props = {
 };
 
 /**
- * The app mark with the spec's motion (UI/UX §4): it floats ±8px over 4s,
- * pulses an indigo/blue glow (~2.4s), and a light band sweeps across every
- * 2.8s — all clipped inside the circular gradient. Built with core
- * `Animated` (no new deps). Motion is stopped on unmount; `animated={false}`
- * renders the static gradient mark for accessibility.
+ * The app mark: a QR glyph inside a **rounded-square** (squircle) gradient
+ * tile with the spec's motion (UI/UX §4) — it floats ±8px over 4s, pulses a
+ * navy/powder-blue glow (~2.4s), and a light band sweeps across every 2.8s,
+ * all clipped inside the rounded square. Built with core `Animated` (no new
+ * deps). Motion stops on unmount; `animated={false}` renders the static tile.
  */
 export default function AnimatedLogo({
-  size = 72,
-  iconSize = 36,
+  size = 88,
+  iconSize = 44,
   animated = true,
 }: Props) {
   const float = useRef(new Animated.Value(0)).current;
@@ -87,18 +87,19 @@ export default function AnimatedLogo({
     };
   }, [animated, float, pulse, sweep]);
 
-  const radius = size / 2;
+  // Rounded-square corner radius (a squircle — ~26% of the size).
+  const radius = Math.round(size * 0.26);
   const translateY = float.interpolate({
     inputRange: [0, 1],
     outputRange: [0, -8],
   });
   const shadowOpacity = pulse.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.55, 0.75],
+    outputRange: [0.4, 0.62],
   });
   const shadowRadius = pulse.interpolate({
     inputRange: [0, 1],
-    outputRange: [18, 26],
+    outputRange: [16, 26],
   });
   // Sweep travels from just off the left edge to just off the right edge.
   const sweepX = sweep.interpolate({
@@ -119,12 +120,12 @@ export default function AnimatedLogo({
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[
-          styles.circle,
+          styles.tile,
           { width: size, height: size, borderRadius: radius },
         ]}
       >
-        <MaterialIcons name="school" size={iconSize} color="#FFFFFF" />
-        {/* Specular sheen across the top of the mark. */}
+        <Ionicons name="qr-code" size={iconSize} color="#FFFFFF" />
+        {/* Specular sheen across the top of the tile (raised glass). */}
         <Gradient
           colors={DEPTH.sheenSoft}
           locations={[0, 0.6]}
@@ -132,7 +133,7 @@ export default function AnimatedLogo({
           end={{ x: 0.5, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        {/* Moving light band — clipped to the circle. */}
+        {/* Moving light band — clipped to the rounded square. */}
         {animated && (
           <Animated.View
             pointerEvents="none"
@@ -157,18 +158,18 @@ export default function AnimatedLogo({
 
 const styles = StyleSheet.create({
   glow: {
-    shadowColor: '#6366f1',
+    shadowColor: '#162660',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.7,
+    shadowOpacity: 0.55,
     shadowRadius: 18,
     elevation: 10,
   },
-  circle: {
+  tile: {
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: 'rgba(255,255,255,0.30)',
   },
   sweepBand: {
     position: 'absolute',
@@ -178,3 +179,4 @@ const styles = StyleSheet.create({
     width: 60,
   },
 });
+

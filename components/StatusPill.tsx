@@ -67,8 +67,8 @@ export default function StatusPill({ label, tone = 'neutral' }: Props) {
       style={[
         styles.pill,
         {
-          backgroundColor: withAlpha(hex, 0.2),
-          borderColor: withAlpha(hex, 0.5),
+          backgroundColor: withAlpha(hex, 0.16),
+          borderColor: withAlpha(hex, 0.55),
         },
       ]}
     >

@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +11,8 @@ import {
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+
+import AnimatedPressable from '@/components/AnimatedPressable';
 
 import BusyButton from '@/components/BusyButton';
 import EducationFields from '@/components/EducationFields';
@@ -51,7 +52,9 @@ import type { Profile } from '@/types/database';
  */
 export default function CampusProfileScreen() {
   const { user } = useAuth();
-  const { refresh: refreshRole, isStudent } = useCampusRole();
+  const { profile: roleProfile, refresh: refreshRole, isStudent, role } = useCampusRole();
+  const isTeacher = role === 'teacher';
+  const isAdmin = role === 'admin';
   const toast = useToast();
   const router = useRouter();
   const onStatus = useRealtimeStatusToast(toast);
@@ -116,6 +119,35 @@ export default function CampusProfileScreen() {
     setError(null);
     setLevelErrors({});
     if (!user?.id) return;
+    // Students may only update their phone number in-app.
+    if (readOnly) {
+      const digits = phone.replace(/\D/g, '');
+      if (phone.trim() && digits.length < 7) {
+        setError('Please enter a valid phone number.');
+        return;
+      }
+      setSaving(true);
+      try {
+        const { error: saveError } = await saveOwnProfile(user.id, {
+          full_name: profile?.full_name ?? fullName,
+          phone,
+          student_no: profile?.student_no ?? studentNo,
+          title: profile?.title ?? title,
+          education,
+        });
+        if (saveError) {
+          setError(saveError);
+          toast.error(saveError);
+          return;
+        }
+        toast.success('Phone number updated.');
+        refreshRole();
+        load();
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
     if (!fullName.trim()) {
       setError('Full name is required.');
       return;
@@ -158,6 +190,13 @@ export default function CampusProfileScreen() {
     }
   };
 
+  const initials = (profile?.full_name ?? user?.email ?? 'LA')
+    .split(' ')
+    .map((p) => p.charAt(0))
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || 'LA';
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -165,6 +204,106 @@ export default function CampusProfileScreen() {
           <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.hint}>Loading profile...</Text>
         </View>
+      </View>
+    );
+  }
+
+  // ---- Student read-only Deep Slate profile ----
+  if (readOnly) {
+    const edu: any = education as any;
+    const level = edu?.level ?? edu?.educationalLevel ?? '';
+    const course = edu?.course ?? edu?.strand ?? '';
+    const year = edu?.yearLevel ?? edu?.year ?? '';
+    const block = edu?.block ?? edu?.section ?? '';
+    return (
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <View style={styles.profileHeader}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+            <Text style={styles.profileName}>{profile?.full_name ?? 'Student'}</Text>
+            <View style={styles.idPill}>
+              <Text style={styles.idPillText}>{profile?.student_no ?? 'No ID yet'}</Text>
+            </View>
+          </View>
+
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={[styles.statValue, { color: '#2A3F8F' }]}>Student</Text>
+              <Text style={styles.statLabel}>Role</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={[styles.statValue, { color: '#2A5BD7' }]}>
+                {profile ? formatDate(profile.created_at) : '...'}
+              </Text>
+              <Text style={styles.statLabel}>Member since</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={[styles.statValue, { color: '#34D399' }]}>{attended}</Text>
+              <Text style={styles.statLabel}>Events attended</Text>
+            </View>
+          </View>
+
+          <View style={styles.infoCard}>
+            <Text style={styles.sectionTitle}>Personal Information</Text>
+            <Text style={styles.miniLabel}>Email</Text>
+            <Text style={styles.miniValue}>{profile?.email ?? user?.email ?? ''}</Text>
+            <Text style={styles.miniLabel}>Phone</Text>
+            <TextInput
+              style={styles.phoneInput}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="Add your phone number"
+              placeholderTextColor="#64748B"
+              keyboardType="phone-pad"
+              editable={!saving}
+            />
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+            <AnimatedPressable
+              style={[styles.savePhone, saving && styles.savePhoneDisabled]}
+              onPress={handleSave}
+              disabled={saving}
+              accessibilityRole="button"
+              accessibilityLabel="Save phone number"
+            >
+              <Text style={styles.savePhoneText}>{saving ? 'Saving...' : 'Save Phone'}</Text>
+            </AnimatedPressable>
+            <Text style={styles.adminNote}>
+              Other details are locked. Visit the administration office to request changes.
+            </Text>
+          </View>
+
+          <View style={styles.infoCard}>
+            <Text style={styles.sectionTitle}>Academic Information</Text>
+            <Text style={styles.miniLabel}>Educational Level</Text>
+            <Text style={styles.miniValue}>{level || '—'}</Text>
+            <Text style={styles.miniLabel}>Course</Text>
+            <Text style={styles.miniValue}>{course || '—'}</Text>
+            <View style={styles.twoCol}>
+              <View style={styles.twoColItem}>
+                <Text style={styles.miniLabel}>Year Level</Text>
+                <Text style={styles.miniValue}>{year || '—'}</Text>
+              </View>
+              <View style={styles.twoColItem}>
+                <Text style={styles.miniLabel}>Block</Text>
+                <Text style={styles.miniValue}>{block || '—'}</Text>
+              </View>
+            </View>
+          </View>
+
+          <AnimatedPressable
+            style={styles.signOutGlass}
+            onPress={handleSignOut}
+            disabled={signingOut}
+            accessibilityRole="button"
+            accessibilityLabel="Sign Out"
+            glowColor="#EF4444"
+          >
+            <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+            <Text style={styles.signOutGlassText}>{signingOut ? 'Signing out...' : 'Sign Out'}</Text>
+          </AnimatedPressable>
+        </ScrollView>
       </View>
     );
   }
@@ -181,13 +320,6 @@ export default function CampusProfileScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.title}>Profile</Text>
-
-          {readOnly && (
-            <Text style={styles.hint}>
-              Your account is managed by your school admin. Contact{' '}
-              your teacher if your details change.
-            </Text>
-          )}
 
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
@@ -273,26 +405,17 @@ export default function CampusProfileScreen() {
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <View style={styles.actions}>
-            {!readOnly && (
-              <BusyButton
-                title="Save Profile"
-                loadingTitle="Saving..."
-                icon="checkmark-outline"
-                onPress={handleSave}
-                loading={saving}
-              />
-            )}
-            <Pressable
-              style={styles.signOutButton}
+            <AnimatedPressable
+              style={styles.signOutGlass}
               onPress={handleSignOut}
               disabled={signingOut}
               accessibilityRole="button"
+              accessibilityLabel="Sign Out"
+              glowColor="#EF4444"
             >
-              <Ionicons name="log-out-outline" size={20} color={COLORS.danger} />
-              <Text style={styles.signOutText}>
-                {signingOut ? 'Signing out...' : 'Sign out'}
-              </Text>
-            </Pressable>
+              <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+              <Text style={styles.signOutGlassText}>{signingOut ? 'Signing out...' : 'Sign Out'}</Text>
+            </AnimatedPressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -303,37 +426,75 @@ export default function CampusProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   flex: { flex: 1 },
-  scroll: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8 },
-  title: { fontSize: 24, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 12 },
+  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginBottom: 12, textAlign: 'center' },
   loadingBox: { alignItems: 'center', paddingVertical: 48, gap: 12 },
   hint: { fontSize: 14, color: COLORS.textSecondary },
-  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 8 },
-  statCard: {
-    flex: 1, backgroundColor: COLORS.card, borderRadius: 12,
-    borderWidth: 1, borderColor: COLORS.border,
-    padding: 12, alignItems: 'center', gap: 4,
+  profileHeader: { alignItems: 'center', marginBottom: 14 },
+  avatar: {
+    width: 84, height: 84, borderRadius: 42,
+    backgroundColor: 'rgba(22, 38, 96, 0.1)', borderWidth: 1,
+    borderColor: 'rgba(22, 38, 96, 0.28)',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 10,
   },
-  statLabel: { fontSize: 11, color: COLORS.textSecondary, textAlign: 'center' },
-  statValue: { fontSize: 13, fontWeight: '700', color: COLORS.textPrimary, textAlign: 'center' },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: COLORS.textPrimary, marginTop: 16, marginBottom: 10 },
-  label: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary, marginBottom: 6, marginTop: 10 },
+  avatarText: { fontSize: 28, fontWeight: '700', color: '#162660' },
+  profileName: { fontSize: 20, fontWeight: '700', color: '#162660', textAlign: 'center' },
+  idPill: {
+    marginTop: 8, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999,
+    backgroundColor: 'rgba(22, 38, 96, 0.08)', borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.16)',
+  },
+  idPillText: { fontSize: 12, fontWeight: '600', color: '#162660' },
+  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  statCard: {
+    flex: 1, backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingVertical: 12, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', gap: 4,
+  },
+  statLabel: { fontSize: 11, color: '#4A5878', textAlign: 'center' },
+  statValue: { fontSize: 13, fontWeight: '700', color: '#162660', textAlign: 'center' },
+  infoCard: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    padding: 16, marginBottom: 12,
+  },
+  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#162660', marginBottom: 10 },
+  miniLabel: { fontSize: 12, fontWeight: '600', color: '#4A5878', marginTop: 8 },
+  miniValue: { fontSize: 15, color: '#162660', marginTop: 2 },
+  phoneInput: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 14, paddingVertical: 12, marginTop: 6, minHeight: 48,
+    fontSize: 15, color: '#162660',
+  },
+  savePhone: {
+    backgroundColor: '#162660', borderRadius: 12, paddingVertical: 12,
+    alignItems: 'center', justifyContent: 'center', marginTop: 10, minHeight: 44,
+  },
+  savePhoneDisabled: { opacity: 0.6 },
+  savePhoneText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
+  adminNote: { fontSize: 12, color: '#4A5878', fontStyle: 'italic', lineHeight: 17, marginTop: 10 },
+  twoCol: { flexDirection: 'row', gap: 12 },
+  twoColItem: { flex: 1 },
+  label: { fontSize: 14, fontWeight: '600', color: '#162660', marginBottom: 6, marginTop: 10 },
   input: {
-    backgroundColor: COLORS.card, borderRadius: 10,
-    borderWidth: 1, borderColor: COLORS.border,
-    paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 16, color: COLORS.textPrimary,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 14, paddingVertical: 12, marginHorizontal: 0,
+    fontSize: 16, color: '#162660',
   },
   readonlyBox: {
-    backgroundColor: COLORS.card, borderRadius: 10,
-    borderWidth: 1, borderColor: COLORS.border,
-    paddingHorizontal: 14, paddingVertical: 12, opacity: 0.75,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 14, paddingVertical: 12, opacity: 0.9,
   },
-  readonlyText: { fontSize: 16, color: COLORS.textSecondary },
+  readonlyText: { fontSize: 16, color: '#3A4A6B' },
   error: { fontSize: 14, color: COLORS.danger, textAlign: 'center', marginTop: 12 },
-  actions: { marginTop: 24 },
-  signOutButton: {
-    minHeight: 48, flexDirection: 'row', gap: 8,
-    alignItems: 'center', justifyContent: 'center',
+  actions: { marginTop: 24, paddingBottom: 8 },
+  signOutGlass: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderWidth: 1, borderRadius: 12, paddingVertical: 12, minHeight: 44,
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8,
   },
-  signOutText: { fontSize: 15, fontWeight: '600', color: COLORS.danger },
+  signOutGlassText: { fontSize: 15, fontWeight: '600', color: '#EF4444' },
 });

@@ -1,132 +1,171 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import AnimatedPressable from '@/components/AnimatedPressable';
 import FadeInView from '@/components/FadeInView';
-import GlassCard from '@/components/GlassCard';
-import GradientButton from '@/components/GradientButton';
-import Header from '@/components/Header';
-import { COLORS } from '@/constants/colors';
+import { COLORS, SLATE } from '@/constants/colors';
 
 /**
- * Landing portal: a single welcome card with Log In and Sign Up for all
- * users. New accounts always start as Student (the database trigger
- * hardcodes it) — personnel roles are assigned later by an administrator.
- * This is the unauthenticated front door for the CampusQR Attend system.
+ * Landing portal: warm Bone welcome card with a QR logo, "Welcome Back",
+ * and Log In + Create an Account actions.
  */
 export default function CampusLandingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView
-      contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 32 }]}
-      showsVerticalScrollIndicator={false}
-    >
-      <Header
-        title="CampusQR Attend"
-        subtitle="School Event Attendance System"
-      />
+    <View style={[styles.root, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
+      <FadeInView style={styles.center}>
+        <View style={styles.iconBubble}>
+          <Text style={styles.iconGlyph}>▩</Text>
+        </View>
+        <Text style={styles.appName}>School Attendance System</Text>
+        <Text style={styles.subtitle}>Secure QR-powered campus attendance</Text>
+      </FadeInView>
 
-      <FadeInView delay={60}>
-        <GlassCard variant="card" style={styles.card}>
-          <View style={styles.cardHead}>
-            <View style={styles.iconBubble}>
-              <Ionicons name="qr-code-outline" size={22} color={COLORS.primary} />
-            </View>
-            <View style={styles.cardTitleBox}>
-              <Text style={styles.cardTitle}>Welcome to CampusQR Attend</Text>
-              <Text style={styles.cardRole}>School Event Attendance System</Text>
-            </View>
-          </View>
-          <Text style={styles.cardBody}>
-            Sign in to manage events, scan QR codes, and track attendance.
-          </Text>
-          <Text style={styles.note}>
-            New accounts start as Student — personnel roles are assigned by an
-            administrator.
-          </Text>
-          <GradientButton
-            title="Log In"
-            variant="personnel"
+      <FadeInView delay={60} style={styles.cardWrap}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Welcome Back</Text>
+          <Text style={styles.cardSubtitle}>Sign in to your account</Text>
+
+          <AnimatedPressable
+            style={styles.loginButton}
             onPress={() => router.push('/campus/login')}
-            style={styles.button}
-          />
-          <GradientButton
-            title="Sign Up"
-            variant="student"
+            glowColor={COLORS.primary}
+            accessibilityLabel="Log In"
+          >
+            <Text style={styles.loginText}>Log In</Text>
+          </AnimatedPressable>
+
+          <AnimatedPressable
+            style={styles.createButton}
             onPress={() => router.push('/campus/register')}
-            style={styles.buttonSpacing}
-          />
-        </GlassCard>
+            glowColor={COLORS.accent}
+            accessibilityLabel="Create an Account"
+          >
+            <Text style={styles.createText}>Create an Account</Text>
+          </AnimatedPressable>
+        </View>
       </FadeInView>
 
       <Text style={styles.footer}>Developed by: Leonard V. Abatayo</Text>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: {
+  root: {
+    flex: 1,
     paddingHorizontal: 20,
-    flexGrow: 1,
+    justifyContent: 'center',
   },
-  card: {
-    marginBottom: 16,
-  },
-  cardHead: {
-    flexDirection: 'row',
+  center: {
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 10,
+    marginBottom: 24,
   },
   iconBubble: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(99,102,241,0.20)',
+    width: 96,
+    height: 96,
+    borderRadius: 26,
+    backgroundColor: COLORS.primary,
     borderWidth: 1,
-    borderColor: 'rgba(99,102,241,0.5)',
+    borderColor: 'rgba(255,255,255,0.25)',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    elevation: 10,
   },
-  cardTitleBox: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 18,
+  iconGlyph: {
+    fontSize: 52,
+    color: '#FFFFFF',
     fontWeight: '700',
+  },
+  appName: {
+    fontSize: 20,
+    fontWeight: '800',
     color: COLORS.textPrimary,
+    textAlign: 'center',
   },
-  cardRole: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 1,
-  },
-  cardBody: {
+  subtitle: {
     fontSize: 14,
-    color: COLORS.textPrimary,
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  note: {
-    fontSize: 12,
     color: COLORS.textSecondary,
-    fontStyle: 'italic',
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  button: {
+    textAlign: 'center',
+    fontWeight: '500',
     marginTop: 4,
   },
-  buttonSpacing: {
-    marginTop: 10,
+  cardWrap: {
+    width: '100%',
+  },
+  card: {
+    backgroundColor: SLATE.landingCard,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'stretch',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.28,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  cardTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  loginButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    minHeight: 48,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  loginText: {
+    color: COLORS.textOnPrimary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  createButton: {
+    backgroundColor: COLORS.accent,
+    borderWidth: 1,
+    borderColor: COLORS.accentDeep,
+    borderRadius: 12,
+    minHeight: 48,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  createText: {
+    color: COLORS.primary,
+    fontSize: 16,
+    fontWeight: '700',
   },
   footer: {
     fontSize: 12,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 24,
   },
 });
+

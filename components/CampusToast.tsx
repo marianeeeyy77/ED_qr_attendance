@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   inline: {
-    borderRadius: 10,
+    borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 14,
     marginBottom: 12,

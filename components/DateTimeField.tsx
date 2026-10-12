@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 48,
     backgroundColor: COLORS.card,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: 14,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   },
   iosPicker: {
     backgroundColor: COLORS.card,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     marginTop: 8,

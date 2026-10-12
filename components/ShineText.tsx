@@ -8,13 +8,15 @@ type Props = {
   animated?: boolean;
 };
 
-// The spec's title-shine gradient stops (UI/UX §4.1), interpolated across
-// the text color since RN has no `background-clip: text`.
+// The title-shine gradient stops (UI/UX §4.1), interpolated across the text
+// color since RN has no `background-clip: text`. Tuned for the light Bone
+// theme: the sweep stays in dark navy/royal-blue territory so the title is
+// always readable on cream (never washing out to white).
 const SHINE_COLORS = [
-  '#818cf8', // indigo-400
-  '#ffffff', // white
-  '#60a5fa', // blue-400
-  '#818cf8', // back to indigo-400
+  '#162660', // royal navy (base)
+  '#2A5BD7', // royal blue flash
+  '#162660', // royal navy
+  '#2A3F8F', // mid navy
 ];
 
 /**
@@ -60,6 +62,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   staticColor: {
-    color: '#FFFFFF',
+    color: '#162660',
   },
 });

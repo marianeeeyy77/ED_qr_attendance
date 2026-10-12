@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   fill: {
-    minHeight: 50,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

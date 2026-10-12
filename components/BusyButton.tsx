@@ -1,12 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text } from 'react-native';
 
+import AnimatedPressable from '@/components/AnimatedPressable';
 import { COLORS } from '@/constants/colors';
 
 /**
  * Busy button with spinner label (spec: busy buttons with spinner label).
- * Same visual language as the existing AppButton, but with a loading
- * state — new component, existing files untouched.
+ * Wraps AnimatedPressable so the press/hover motion matches every other
+ * interactive element; shows a spinner while `loading`.
  */
 type Props = {
   title: string;
@@ -31,66 +32,69 @@ export default function BusyButton({
   const primary = theme === 'primary';
 
   return (
-    <View style={styles.outer}>
-      <Pressable
+    <AnimatedPressable
+      onPress={onPress}
+      disabled={isDisabled}
+      glowColor={primary ? COLORS.primary : COLORS.accent}
+      pressScale={primary ? 0.97 : 0.98}
+      accessibilityLabel={title}
+      style={[
+        styles.inner,
+        primary ? styles.primaryFill : styles.secondaryFill,
+        isDisabled && styles.disabled,
+      ]}
+    >
+      {loading ? (
+        <ActivityIndicator
+          size="small"
+          color={primary ? '#FFFFFF' : COLORS.primary}
+          style={styles.icon}
+        />
+      ) : icon ? (
+        <Ionicons
+          name={icon}
+          size={22}
+          color={primary ? '#FFFFFF' : COLORS.primary}
+          style={styles.icon}
+        />
+      ) : null}
+      <Text
         style={[
-          styles.inner,
-          primary ? styles.primaryFill : styles.secondaryFill,
-          isDisabled && styles.disabled,
+          styles.label,
+          primary ? styles.primaryLabel : styles.secondaryLabel,
         ]}
-        onPress={onPress}
-        disabled={isDisabled}
       >
-        {loading ? (
-          <ActivityIndicator
-            size="small"
-            color={primary ? '#FFFFFF' : COLORS.primary}
-            style={styles.icon}
-          />
-        ) : icon ? (
-          <Ionicons
-            name={icon}
-            size={22}
-            color={primary ? '#FFFFFF' : COLORS.textSecondary}
-            style={styles.icon}
-          />
-        ) : null}
-        <Text
-          style={[
-            styles.label,
-            primary ? styles.primaryLabel : styles.secondaryLabel,
-          ]}
-        >
-          {loading ? loadingTitle ?? 'Working...' : title}
-        </Text>
-      </Pressable>
-    </View>
+        {loading ? loadingTitle ?? 'Working...' : title}
+      </Text>
+    </AnimatedPressable>
   );
 }
 
 const styles = StyleSheet.create({
-  outer: {
-    width: '100%',
-    marginBottom: 14,
-  },
   inner: {
     minHeight: 48,
-    borderRadius: 10,
+    borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    marginBottom: 14,
   },
   primaryFill: {
     backgroundColor: COLORS.primary,
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.primaryDeep,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 12,
+    elevation: 6,
   },
   secondaryFill: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.accent,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: COLORS.accentDeep,
   },
   icon: {
     paddingRight: 10,
@@ -104,7 +108,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   secondaryLabel: {
-    color: COLORS.textPrimary,
+    color: COLORS.primary,
   },
   disabled: {
     opacity: 0.55,

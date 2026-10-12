@@ -40,11 +40,11 @@ export function requireRole(
 export function defaultTabFor(role: UserRole | null): string {
   switch (role) {
     case 'admin':
-      return '/campus/manage-users';
+      return '/campus/(tabs)/events';
     case 'teacher':
-      return '/campus/events';
+      return '/campus/(tabs)/events';
     default:
-      return '/campus/events';
+      return '/campus/(tabs)/events';
   }
 }
 

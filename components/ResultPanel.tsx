@@ -35,7 +35,7 @@ export default function ResultPanel({ tone, title, message, children }: Props) {
     <View
       style={[
         styles.panel,
-        { backgroundColor: withAlpha(hex, 0.16), borderColor: withAlpha(hex, 0.6) },
+        { backgroundColor: withAlpha(hex, 0.14), borderColor: withAlpha(hex, 0.6) },
       ]}
     >
       {title ? (

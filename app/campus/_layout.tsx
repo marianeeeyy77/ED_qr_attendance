@@ -39,11 +39,6 @@ function CampusNavigator() {
   const isPortal = sub === undefined || sub === 'index';
   const inAuth = sub === 'login' || sub === 'register';
   const isPublic = isPortal || inAuth;
-  // Admins have no Profile tab (they sign out from the header). A deep link
-  // to it would render a bare profile screen, so send admins to their
-  // default tab instead.
-  const tabLeaf = parts[2] === '(tabs)' ? parts[3] : undefined;
-  const adminOnProfile = role === 'admin' && tabLeaf === 'profile';
 
   // Redirect targets are computed only — the Stack below is ALWAYS rendered
   // so the target screen exists in a mounted navigator. Returning <Redirect />
@@ -56,9 +51,7 @@ function CampusNavigator() {
       ? '/campus'
       : session && isPublic
         ? defaultTabFor(role)
-        : session && adminOnProfile
-          ? defaultTabFor(role)
-          : null;
+        : null;
 
   return (
     <>
@@ -66,14 +59,16 @@ function CampusNavigator() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: 'transparent' },
+          // Smooth fade+slide for pushed modal screens (event form, QR display).
+          animation: 'slide_from_right',
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="login" />
-        <Stack.Screen name="register" />
-        <Stack.Screen name="event-form" />
-        <Stack.Screen name="qr-display" />
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="index" options={{ animation: 'fade' }} />
+        <Stack.Screen name="login" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="register" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="event-form" options={{ animation: 'slide_from_bottom', presentation: 'card' }} />
+        <Stack.Screen name="qr-display" options={{ animation: 'fade', presentation: 'card' }} />
+        <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
       </Stack>
       {redirectTo ? (
         <Redirect href={redirectTo as '/campus'} />

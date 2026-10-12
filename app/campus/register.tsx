@@ -136,12 +136,12 @@ export default function CampusRegisterScreen() {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.headerContainer}>
-              <Header title="CampusQR" />
+              <Header title="School Attendance System" />
             </View>
 
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>
-              Sign up to get started with CampusQR Attend
+              Sign up to get started with School Attendance System
             </Text>
             <Text style={styles.accountNote}>
               New accounts start as Student — personnel roles are assigned by
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: COLORS.card,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: 14,
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     padding: 20,
     backgroundColor: COLORS.card,
-    borderRadius: 10,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
     width: '100%',
