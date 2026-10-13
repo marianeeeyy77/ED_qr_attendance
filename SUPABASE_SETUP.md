@@ -4,7 +4,7 @@ This file contains the **complete** CampusQR schema in a single block.
 Copy the SQL below into **Supabase Dashboard → SQL Editor → New query**,
 paste, and click **Run**. It is safe to re-run (idempotent).
 
-It creates: the enums, the `profiles` / `events` / `attendance` / `audit_logs`
+It creates: the enums, the `profiles` / `events` / `attendance` / `appeals` / `audit_logs`
 tables, the helper functions, the `check_in()` RPC, the admin RPCs, all RLS
 policies, column grants, the signup trigger, the event audit trigger, and the
 Realtime publication — everything the app needs.
@@ -148,6 +148,34 @@ create index if not exists idx_events_created_by   on public.events(created_by);
 create index if not exists idx_events_status       on public.events(status);
 create index if not exists idx_attendance_event    on public.attendance(event_id);
 create index if not exists idx_attendance_student  on public.attendance(student_id);
+
+-- ---------- legacy compatibility columns ----------
+-- The pre-existing (non-CampusQR) helpers in lib/attendance.ts + lib/events.ts
+-- still select/insert these columns, and types/database.ts declares them as
+-- optional. Fresh databases would fail those queries without them, so they
+-- are kept as NULLABLE compatibility columns: CampusQR code never writes
+-- them (`create table if not exists` skips existing tables, hence the
+-- explicit `add column if not exists` for both fresh and upgraded DBs).
+alter table public.profiles   add column if not exists updated_at timestamptz;
+alter table public.events     add column if not exists event_code text;
+alter table public.events     add column if not exists title      text;
+alter table public.events     add column if not exists start_time timestamptz;
+alter table public.events     add column if not exists end_time   timestamptz;
+alter table public.attendance add column if not exists scanned_at timestamptz;
+
+-- Keeps profiles.updated_at fresh without any app code.
+create or replace function public.touch_updated_at()
+returns trigger language plpgsql set search_path = public as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_profiles_touch_updated_at on public.profiles;
+create trigger trg_profiles_touch_updated_at
+  before update on public.profiles
+  for each row execute function public.touch_updated_at();
 
 -- ---------- backfill: infer the level of existing rows ----------
 with legacy as (
@@ -372,6 +400,34 @@ revoke execute on function public.admin_set_role(uuid, public.user_role) from an
 revoke execute on function public.admin_set_active(uuid, boolean) from anon;
 revoke execute on function public.admin_delete_user(uuid) from anon;
 
+-- ---------- QR rotation (server-side; kills screenshots) ----------
+-- lib/campusqr/events.ts calls rpc('rotate_qr_token', { p_event_id }) first
+-- and falls back to a client-side update when the function is absent.
+-- Defining it here makes rotation atomic server-side. Owner-or-admin only
+-- (same rule as events_update); returns the refreshed event row.
+create or replace function public.rotate_qr_token(p_event_id uuid)
+returns public.events
+language plpgsql security definer set search_path = public as $$
+declare
+  v_event public.events;
+begin
+  select * into v_event from public.events where id = p_event_id;
+  if not found then
+    raise exception 'Event not found.';
+  end if;
+  if not (v_event.created_by = auth.uid() or public.is_admin()) then
+    raise exception 'Only the event owner or an administrator can rotate the QR code.';
+  end if;
+  update public.events
+     set qr_token = gen_random_uuid()
+   where id = p_event_id
+  returning * into v_event;
+  return v_event;
+end;
+$$;
+
+revoke execute on function public.rotate_qr_token(uuid) from anon;
+
 -- ==================== 6. RLS / CRUD policies ====================
 alter table public.profiles   enable row level security;
 alter table public.events     enable row level security;
@@ -444,7 +500,9 @@ create trigger on_auth_user_created
 drop policy if exists events_select on public.events;
 create policy events_select on public.events
   for select using (
-    status = 'open' or created_by = auth.uid() or public.is_admin()
+    -- Students see open + closed events (live open/closed status);
+    -- drafts stay staff-only.
+    status in ('open', 'closed') or created_by = auth.uid() or public.is_admin()
   );
 
 drop policy if exists events_insert on public.events;
@@ -536,6 +594,126 @@ create trigger trg_audit_events
   after insert or update on public.events
   for each row execute function public.audit_event_change();
 
+-- ==================== appeals (absent-only, one per student+event) ====================
+do $$ begin
+  create type public.appeal_status as enum ('pending', 'approved', 'rejected');
+exception when duplicate_object then null; end $$;
+
+create table if not exists public.appeals (
+  id            uuid primary key default gen_random_uuid(),
+  student_id    uuid not null references public.profiles(id) on delete cascade,
+  event_id      uuid not null references public.events(id) on delete cascade,
+  attendance_id uuid references public.attendance(id) on delete set null,
+  reason        text not null,
+  status        public.appeal_status not null default 'pending',
+  feedback      text,
+  created_at    timestamptz not null default now(),
+  constraint appeals_one_per_student_event unique (student_id, event_id)
+);
+create index if not exists idx_appeals_event   on public.appeals(event_id);
+create index if not exists idx_appeals_student on public.appeals(student_id);
+
+alter table public.appeals enable row level security;
+
+drop policy if exists appeals_select on public.appeals;
+create policy appeals_select on public.appeals
+  for select using (
+    student_id = auth.uid()
+    or public.is_admin()
+    or exists (select 1 from public.events e
+               where e.id = appeals.event_id and e.created_by = auth.uid())
+  );
+
+drop policy if exists appeals_insert on public.appeals;
+create policy appeals_insert on public.appeals
+  for insert with check (
+    student_id = auth.uid()
+    and public.is_student()
+    and status = 'pending'
+    and exists (
+      select 1 from public.attendance a
+      where a.id = appeals.attendance_id
+        and a.student_id = auth.uid()
+        and a.event_id = appeals.event_id
+        and a.status = 'absent'
+    )
+  );
+
+drop policy if exists appeals_update on public.appeals;
+create policy appeals_update on public.appeals
+  for update using (public.is_staff() and status = 'pending')
+  with check (public.is_staff());
+-- No DELETE policy: appeals are kept for the record.
+
+grant select on public.appeals to authenticated;
+grant insert, update on public.appeals to authenticated;
+
+-- ---------- absent marking: closing an event marks the rest Absent ----------
+-- A student who never scanned the QR (no attendance row) automatically
+-- becomes `absent` here — that absent row is exactly what they can appeal
+-- from Attendance history (one appeal per student per closed event).
+-- Students NEVER need to scan a closed event: the check_in() RPC refuses
+-- closed events, so the trigger below is the ONLY way absent rows appear.
+create or replace function public.mark_absent_on_event_close()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'INSERT' then
+    -- Catches events created directly as `closed` (no UPDATE ever fires).
+    if new.status = 'closed' then
+      insert into public.attendance (event_id, student_id, status, method)
+      select new.id, p.id, 'absent', 'auto'
+        from public.profiles p
+       where p.role = 'student'
+         and p.is_active
+         and not exists (
+           select 1 from public.attendance a
+           where a.event_id = new.id and a.student_id = p.id
+         )
+      on conflict (event_id, student_id) do nothing;
+    end if;
+  elsif new.status = 'closed' and old.status is distinct from 'closed' then
+    insert into public.attendance (event_id, student_id, status, method)
+    select new.id, p.id, 'absent', 'auto'
+      from public.profiles p
+     where p.role = 'student'
+       and p.is_active
+       and not exists (
+         select 1 from public.attendance a
+         where a.event_id = new.id and a.student_id = p.id
+       )
+    on conflict (event_id, student_id) do nothing;
+  elsif new.status <> 'closed' and old.status = 'closed' then
+    delete from public.attendance
+     where event_id = new.id
+       and status = 'absent'
+       and method = 'auto';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_mark_absent_on_event_close on public.events;
+create trigger trg_mark_absent_on_event_close
+  after insert or update of status on public.events
+  for each row execute function public.mark_absent_on_event_close();
+
+-- ---------- backfill: closed events that pre-date the trigger ----------
+-- Events closed BEFORE this migration ran never got auto-absent rows
+-- (no UPDATE fires for them). This one-shot backfill inserts them now —
+-- idempotent (`not exists` + `on conflict do nothing`), so re-runs are safe.
+insert into public.attendance (event_id, student_id, status, method)
+select e.id, p.id, 'absent', 'auto'
+  from public.events e
+  join public.profiles p
+    on p.role = 'student'
+   and p.is_active
+ where e.status = 'closed'
+   and not exists (
+     select 1 from public.attendance a
+     where a.event_id = e.id and a.student_id = p.id
+   )
+on conflict (event_id, student_id) do nothing;
+
 -- ==================== realtime (optional, safe to re-run) ====================
 -- If the publication does not exist, enable Realtime first:
 -- Database -> Replication -> enable supabase_realtime, then re-run this block.
@@ -564,6 +742,12 @@ begin
     where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'audit_logs'
   ) then
     alter publication supabase_realtime add table public.audit_logs;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'appeals'
+  ) then
+    alter publication supabase_realtime add table public.appeals;
   end if;
 end;
 $$;
@@ -608,7 +792,11 @@ Then restart the dev server: `npx expo start -c`.
 | User / Profile | `profiles` (id, email, full_name, role, is_active, phone, student_no, educational fields, created_at) |
 | Event | `events` (id, name, description, venue, start_datetime, end_datetime, status, qr_token, created_by) |
 | Attendance | `attendance` (id, event_id, student_id, status, method, recorded_at, recorded_by; unique per event+student) |
+| Appeal | `appeals` (student_id, event_id, attendance_id, reason, status, feedback; unique per student+event) - students appeal only their own `absent` records |
+| Absent marking | `trg_mark_absent_on_event_close` (insert + close) + one-shot backfill — every active student without a row on a closed event is `absent`/`auto`; no scan of a closed event is ever needed (auto rows are removed again if the event reopens) |
 | Check-in | `check_in(p_token text)` RPC → `result` = success / duplicate / closed / invalid / unauthorized |
+| QR rotation | `rotate_qr_token(p_event_id uuid)` RPC → refreshed event row (owner-or-admin; kills screenshots) |
+| Legacy compat | `profiles.updated_at`, `events.event_code/title/start_time/end_time`, `attendance.scanned_at` — nullable columns kept for the pre-existing helpers; CampusQR code never writes them |
 | Admin actions | `admin_set_role`, `admin_set_active`, `admin_delete_user` |
 | Activity log | `audit_logs` (admin read-only; written by triggers + RPCs) |
 | QR payload | `CAMPUSQR:<events.qr_token>` |

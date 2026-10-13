@@ -19,7 +19,7 @@ import EducationFields from '@/components/EducationFields';
 import EmptyState from '@/components/EmptyState';
 import LockedView from '@/components/LockedView';
 import { useToast } from '@/components/CampusToast';
-import { COLORS } from '@/constants/colors';
+import { COLORS, SPACING, RADIUS, BTN } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
 import {
   deleteUser,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   },
   search: { flex: 1, fontSize: 15, color: '#162660', minHeight: 44 },
   pillRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 10 },
-  list: { paddingHorizontal: 16, paddingBottom: 40, gap: 12 },
+  list: { paddingHorizontal: 16, paddingTop: SPACING.listTop, paddingBottom: 40, gap: SPACING.cardGap },
   card: { backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 14 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: '#162660', flex: 1 },
@@ -393,8 +393,8 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: '#162660', borderColor: '#162660' },
   chipText: { fontSize: 13, fontWeight: '600', color: '#4A5878', textTransform: 'capitalize' },
   chipTextActive: { color: '#FFFFFF' },
-  actions: { flexDirection: 'row', marginTop: 10, gap: 8 },
-  actionButton: { flex: 1, minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8, gap: 5, borderRadius: 12 },
+  actions: { flexDirection: 'row', marginTop: 10, gap: SPACING.buttonGap },
+  actionButton: { flex: 1, minHeight: BTN.secondary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8, gap: 5, borderRadius: RADIUS.button },
   editBtn: { backgroundColor: '#162660' },
   deactBtn: { backgroundColor: 'rgba(245,158,11,0.85)' },
   delBtn: { backgroundColor: 'rgba(239,68,68,0.85)' },

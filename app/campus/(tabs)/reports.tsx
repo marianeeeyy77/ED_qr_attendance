@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import AnimatedPressable from '@/components/AnimatedPressable';
 import EmptyState from '@/components/EmptyState';
@@ -50,6 +51,7 @@ export default function SystemReportsScreen() {
   const [audit, setAudit] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
+  const [exportingId, setExportingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -107,6 +109,21 @@ export default function SystemReportsScreen() {
     }
   };
 
+  // Export a single event's CSV (teacher can pick one event, spec Phase 6).
+  const handleExportEvent = async (summary: EventSummary) => {
+    setExportingId(summary.eventId);
+    try {
+      await Share.share({
+        title: `${summary.name} — attendance report`,
+        message: summariesToCsv([summary]),
+      });
+    } catch {
+      toast.error('Could not open the share sheet.');
+    } finally {
+      setExportingId(null);
+    }
+  };
+
   const totals = summaries.reduce(
     (acc, s) => {
       acc.total += s.total;
@@ -126,10 +143,10 @@ export default function SystemReportsScreen() {
         <Text style={styles.title}>{title}</Text>
         {isAdmin ? (
           <View style={styles.segment}>
-            <AnimatedPressable style={[styles.segBtn, mode === 'reports' && styles.segActive]} onPress={() => setMode('reports')} accessibilityRole="button">
+            <AnimatedPressable style={[styles.segBtn, mode === 'reports' && styles.segActive]} outerStyle={{ flex: 1 }} onPress={() => setMode('reports')} accessibilityRole="button">
               <Text style={[styles.segText, mode === 'reports' && styles.segTextActive]}>Attendance Reports</Text>
             </AnimatedPressable>
-            <AnimatedPressable style={[styles.segBtn, mode === 'audit' && styles.segActive]} onPress={() => setMode('audit')} accessibilityRole="button">
+            <AnimatedPressable style={[styles.segBtn, mode === 'audit' && styles.segActive]} outerStyle={{ flex: 1 }} onPress={() => setMode('audit')} accessibilityRole="button">
               <Text style={[styles.segText, mode === 'audit' && styles.segTextActive]}>Audit Logs</Text>
             </AnimatedPressable>
           </View>
@@ -201,7 +218,21 @@ export default function SystemReportsScreen() {
                     </View>
                   ))}
                 </View>
-                <Text style={styles.total}>Total: {formatNumber(summary.total)}</Text>
+                <View style={styles.cardFooter}>
+                  <Text style={styles.total}>Total: {formatNumber(summary.total)}</Text>
+                  <AnimatedPressable
+                    style={[styles.exportBtn, exportingId === summary.eventId && styles.disabled]}
+                    onPress={() => handleExportEvent(summary)}
+                    disabled={exportingId === summary.eventId}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Export ${summary.name} as CSV`}
+                  >
+                    <Ionicons name="download-outline" size={16} color="#FFFFFF" />
+                    <Text style={styles.exportText}>
+                      {exportingId === summary.eventId ? 'Exporting...' : 'Export CSV'}
+                    </Text>
+                  </AnimatedPressable>
+                </View>
               </View>
             ))}
           </>
@@ -276,6 +307,13 @@ const styles = StyleSheet.create({
   gridNum: { fontSize: 20, fontWeight: '700', color: '#162660' },
   gridLabel: { fontSize: 11, color: '#4A5878', textTransform: 'capitalize', marginTop: 2 },
   total: { fontSize: 14, fontWeight: '600', color: '#162660' },
+  cardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 4 },
+  exportBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    minHeight: 40, paddingHorizontal: 14, justifyContent: 'center',
+    borderRadius: 12, backgroundColor: '#162660',
+  },
+  exportText: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#162660', marginTop: 8 },
   logCard: {
     backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,

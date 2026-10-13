@@ -9,6 +9,7 @@ import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
 import { fetchOwnHistory, type OwnAttendanceRecord } from '@/lib/campusqr/attendance';
+import { listOwnAppeals, type AppealStatus } from '@/lib/campusqr/appeals';
 import { formatDateTime } from '@/lib/campusqr/format';
 import {
   useCampusRealtime,
@@ -26,6 +27,10 @@ export default function MyAttendanceScreen() {
   const router = useRouter();
   const onStatus = useRealtimeStatusToast(toast);
   const [records, setRecords] = useState<OwnAttendanceRecord[]>([]);
+  // One appeal per absent event (unique(student_id, event_id) in the DB):
+  // maps event_id -> appeal status so each history row can show Pending /
+  // Approved / Declined live instead of offering a second Appeal button.
+  const [appealByEvent, setAppealByEvent] = useState<Record<string, AppealStatus>>({});
   const [loading, setLoading] = useState(true);
   const present = records.filter((r) => r.status === 'present').length;
   const late = records.filter((r) => r.status === 'late').length;
@@ -41,6 +46,19 @@ export default function MyAttendanceScreen() {
     }
     const rows = await fetchOwnHistory(user.id);
     setRecords(rows);
+    // Appeal state per event: drives the per-row status line below and
+    // refreshes live via the `appeals` realtime subscription.
+    try {
+      const appeals = await listOwnAppeals(user.id);
+      const byEvent: Record<string, AppealStatus> = {};
+      for (const appeal of appeals) {
+        // The DB guarantees at most one row per event; newest load wins.
+        byEvent[appeal.event_id] = appeal.status;
+      }
+      setAppealByEvent(byEvent);
+    } catch {
+      // Appeals table missing (pre-migration): history still renders.
+    }
     setLoading(false);
   }, [user?.id]);
 
@@ -52,7 +70,17 @@ export default function MyAttendanceScreen() {
 
   useCampusRealtime(
     (change) => {
-      if (change.table === 'attendance') load();
+      // `attendance` → own check-in / auto-absent / appeal decision flips.
+      // `events` → a teacher closing an event creates the absent row AND
+      //   flips the event to closed (both gate the Appeal button).
+      // `appeals` → our appeal reviewed / submitted elsewhere.
+      if (
+        change.table === 'attendance' ||
+        change.table === 'events' ||
+        change.table === 'appeals'
+      ) {
+        load();
+      }
     },
     onStatus
   );
@@ -97,17 +125,67 @@ export default function MyAttendanceScreen() {
                 <StatusPill label={row.status} tone={attendanceStatusTone(row.status)} />
               </View>
               <Text style={styles.meta}>{formatDateTime(row.recorded_at)}</Text>
-              {(row.status === 'absent' || row.status === 'late') && (
-                <AnimatedPressable
-                  style={styles.appealBtn}
-                  onPress={() => router.push('/campus/(tabs)/appeals')}
-                  accessibilityRole="button"
-                  accessibilityLabel="Appeal this record"
-                >
-                  <Ionicons name="mail-outline" size={16} color="#162660" />
-                  <Text style={styles.appealText}>Appeal</Text>
-                </AnimatedPressable>
-              )}
+              {row.status === 'absent' && row.event?.status === 'closed' ? (
+                appealByEvent[row.event_id] ? (
+                  <View
+                    style={[
+                      styles.appealState,
+                      appealByEvent[row.event_id] === 'pending' && styles.appealPending,
+                      appealByEvent[row.event_id] === 'approved' && styles.appealApproved,
+                      appealByEvent[row.event_id] === 'rejected' && styles.appealRejected,
+                    ]}
+                    accessibilityRole="text"
+                    accessibilityLabel={`Appeal ${appealByEvent[row.event_id]}`}
+                  >
+                    <Ionicons
+                      name={
+                        appealByEvent[row.event_id] === 'pending'
+                          ? 'time-outline'
+                          : appealByEvent[row.event_id] === 'approved'
+                            ? 'checkmark-circle-outline'
+                            : 'close-circle-outline'
+                      }
+                      size={16}
+                      color={
+                        appealByEvent[row.event_id] === 'pending'
+                          ? '#B45309'
+                          : appealByEvent[row.event_id] === 'approved'
+                            ? '#0E9F6E'
+                            : '#DC2626'
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.appealStateText,
+                        appealByEvent[row.event_id] === 'pending' && styles.appealPendingText,
+                        appealByEvent[row.event_id] === 'approved' && styles.appealApprovedText,
+                        appealByEvent[row.event_id] === 'rejected' && styles.appealRejectedText,
+                      ]}
+                    >
+                      {appealByEvent[row.event_id] === 'pending'
+                        ? 'Appeal pending review'
+                        : appealByEvent[row.event_id] === 'approved'
+                          ? 'Appeal approved — excused'
+                          : 'Appeal declined'}
+                    </Text>
+                  </View>
+                ) : (
+                  <AnimatedPressable
+                    style={styles.appealBtn}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/campus/(tabs)/appeals',
+                        params: { eventId: row.event_id, attendanceId: row.id },
+                      })
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel="Appeal this record"
+                  >
+                    <Ionicons name="mail-outline" size={16} color="#162660" />
+                    <Text style={styles.appealText}>Appeal</Text>
+                  </AnimatedPressable>
+                )
+              ) : null}
             </View>
           ))
         )}
@@ -154,4 +232,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(22, 38, 96, 0.06)',
   },
   appealText: { fontSize: 14, fontWeight: '700', color: '#162660' },
+  appealState: {
+    marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    minHeight: 44, borderRadius: 12, borderWidth: 1, paddingHorizontal: 12,
+  },
+  appealPending: { borderColor: 'rgba(180, 83, 9, 0.4)', backgroundColor: 'rgba(245, 158, 11, 0.12)' },
+  appealApproved: { borderColor: 'rgba(14, 159, 110, 0.4)', backgroundColor: 'rgba(16, 185, 129, 0.12)' },
+  appealRejected: { borderColor: 'rgba(220, 38, 38, 0.35)', backgroundColor: 'rgba(239, 68, 68, 0.10)' },
+  appealStateText: { fontSize: 14, fontWeight: '700' },
+  appealPendingText: { color: '#B45309' },
+  appealApprovedText: { color: '#0E9F6E' },
+  appealRejectedText: { color: '#DC2626' },
 });

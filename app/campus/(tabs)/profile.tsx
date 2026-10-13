@@ -1,8 +1,6 @@
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,8 +12,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import AnimatedPressable from '@/components/AnimatedPressable';
 
-import BusyButton from '@/components/BusyButton';
-import EducationFields from '@/components/EducationFields';
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
@@ -23,12 +19,11 @@ import { signOut } from '@/lib/campusqr/auth';
 import { fetchOwnHistory } from '@/lib/campusqr/attendance';
 import {
   EMPTY_EDUCATION,
+  LEVEL_OPTIONS,
   educationFromProfile,
-  validateLevelFields,
-  type EducationErrors,
+  levelFields,
   type EducationValues,
 } from '@/lib/campusqr/education';
-import { formatDate } from '@/lib/campusqr/format';
 import { fetchProfile, saveOwnProfile } from '@/lib/campusqr/profiles';
 import {
   useCampusRealtime,
@@ -59,8 +54,10 @@ export default function CampusProfileScreen() {
   const router = useRouter();
   const onStatus = useRealtimeStatusToast(toast);
 
-  // Students view personal + educational information read-only; staff may edit.
-  const readOnly = isStudent;
+  // Every role is read-only now: personal + educational info is shown for
+  // viewing only. Staff see the same clean layout as students, minus the
+  // student-only bits (Academic info, Phone, Student number, Events attended).
+  const readOnly = true;
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [attended, setAttended] = useState(0);
@@ -72,7 +69,6 @@ export default function CampusProfileScreen() {
   const [education, setEducation] = useState<EducationValues>({
     ...EMPTY_EDUCATION,
   });
-  const [levelErrors, setLevelErrors] = useState<EducationErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -94,7 +90,12 @@ export default function CampusProfileScreen() {
       setTitle(row.title ?? '');
       setEducation(educationFromProfile(row));
     }
-    setAttended(history.length);
+    // "Events attended" counts only present + late marks — absents are excluded.
+    setAttended(
+      history.filter(
+        (record) => record.status === 'present' || record.status === 'late'
+      ).length
+    );
     setLoading(false);
   }, [user?.id]);
 
@@ -117,54 +118,20 @@ export default function CampusProfileScreen() {
 
   const handleSave = async () => {
     setError(null);
-    setLevelErrors({});
     if (!user?.id) return;
-    // Students may only update their phone number in-app.
-    if (readOnly) {
-      const digits = phone.replace(/\D/g, '');
-      if (phone.trim() && digits.length < 7) {
-        setError('Please enter a valid phone number.');
-        return;
-      }
-      setSaving(true);
-      try {
-        const { error: saveError } = await saveOwnProfile(user.id, {
-          full_name: profile?.full_name ?? fullName,
-          phone,
-          student_no: profile?.student_no ?? studentNo,
-          title: profile?.title ?? title,
-          education,
-        });
-        if (saveError) {
-          setError(saveError);
-          toast.error(saveError);
-          return;
-        }
-        toast.success('Phone number updated.');
-        refreshRole();
-        load();
-      } finally {
-        setSaving(false);
-      }
-      return;
-    }
-    if (!fullName.trim()) {
-      setError('Full name is required.');
-      return;
-    }
-    const errors = validateLevelFields(education);
-    if (Object.keys(errors).length > 0) {
-      setLevelErrors(errors);
-      setError('Please fix the highlighted education fields.');
+    // Only students may edit anything in-app, and only their phone number.
+    const digits = phone.replace(/\D/g, '');
+    if (phone.trim() && digits.length < 7) {
+      setError('Please enter a valid phone number.');
       return;
     }
     setSaving(true);
     try {
       const { error: saveError } = await saveOwnProfile(user.id, {
-        full_name: fullName,
+        full_name: profile?.full_name ?? fullName,
         phone,
-        student_no: studentNo,
-        title,
+        student_no: profile?.student_no ?? studentNo,
+        title: profile?.title ?? title,
         education,
       });
       if (saveError) {
@@ -172,7 +139,7 @@ export default function CampusProfileScreen() {
         toast.error(saveError);
         return;
       }
-      toast.success('Profile updated.');
+      toast.success('Phone number updated.');
       refreshRole();
       load();
     } finally {
@@ -210,11 +177,41 @@ export default function CampusProfileScreen() {
 
   // ---- Student read-only Deep Slate profile ----
   if (readOnly) {
-    const edu: any = education as any;
-    const level = edu?.level ?? edu?.educationalLevel ?? '';
-    const course = edu?.course ?? edu?.strand ?? '';
-    const year = edu?.yearLevel ?? edu?.year ?? '';
-    const block = edu?.block ?? edu?.section ?? '';
+    // Level-aware academic fields, mirroring the Sign Up page's
+    // EducationFields: only show the fields the student's education level
+    // actually uses (College → course/year/block; Senior High → track/grade/
+    // section; Junior High & Elementary → grade/section). Read-only.
+    const levelValue = education.educational_level;
+    const levelLabel =
+      LEVEL_OPTIONS.find((option) => option.value === levelValue)?.label ?? '';
+    const fields = levelFields(levelValue);
+
+    // Two-column academic grid:
+    //   Left column  → Educational Level, then Course/Strand (moved to the left)
+    //   Right column → Year/Grade, then Block/Section (stacked in one column)
+    const leftColumn: { label: string; value: string }[] = [
+      { label: 'Educational Level', value: levelLabel || '—' },
+    ];
+    if (fields.needsCourse) {
+      leftColumn.push({
+        label: fields.courseLabel,
+        value: education.course || '—',
+      });
+    }
+
+    const rightColumn: { label: string; value: string }[] = [];
+    if (fields.needsYear) {
+      rightColumn.push({
+        label: fields.yearLabel,
+        value: education.year_level || '—',
+      });
+    }
+    if (fields.needsBlock) {
+      rightColumn.push({ label: 'Block', value: education.block || '—' });
+    }
+    if (fields.needsSection) {
+      rightColumn.push({ label: 'Section', value: education.section || '—' });
+    }
     return (
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -222,75 +219,93 @@ export default function CampusProfileScreen() {
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{initials}</Text>
             </View>
-            <Text style={styles.profileName}>{profile?.full_name ?? 'Student'}</Text>
-            <View style={styles.idPill}>
-              <Text style={styles.idPillText}>{profile?.student_no ?? 'No ID yet'}</Text>
-            </View>
+            <Text style={styles.profileName}>{profile?.full_name ?? (isStudent ? 'Student' : 'Staff')}</Text>
+            {isStudent && (
+              <View style={styles.idPill}>
+                <Text style={styles.idPillText}>{profile?.student_no ?? 'No ID yet'}</Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
-              <Text style={[styles.statValue, { color: '#2A3F8F' }]}>Student</Text>
+              <Text style={[styles.statValue, { color: '#2A3F8F' }]}>{profile ? ROLE_LABEL[profile.role] : '...'}</Text>
               <Text style={styles.statLabel}>Role</Text>
             </View>
-            <View style={styles.statCard}>
-              <Text style={[styles.statValue, { color: '#2A5BD7' }]}>
-                {profile ? formatDate(profile.created_at) : '...'}
-              </Text>
-              <Text style={styles.statLabel}>Member since</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={[styles.statValue, { color: '#34D399' }]}>{attended}</Text>
-              <Text style={styles.statLabel}>Events attended</Text>
-            </View>
+            {isStudent && (
+              <View style={styles.statCard}>
+                <Text style={[styles.statValue, { color: '#34D399' }]}>{attended}</Text>
+                <Text style={styles.statLabel}>Events attended</Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.infoCard}>
-            <Text style={styles.sectionTitle}>Personal Information</Text>
+            <Text style={[styles.sectionTitle, styles.sectionTitleCenter]}>Personal Information</Text>
             <Text style={styles.miniLabel}>Email</Text>
             <Text style={styles.miniValue}>{profile?.email ?? user?.email ?? ''}</Text>
-            <Text style={styles.miniLabel}>Phone</Text>
-            <TextInput
-              style={styles.phoneInput}
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="Add your phone number"
-              placeholderTextColor="#64748B"
-              keyboardType="phone-pad"
-              editable={!saving}
-            />
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-            <AnimatedPressable
-              style={[styles.savePhone, saving && styles.savePhoneDisabled]}
-              onPress={handleSave}
-              disabled={saving}
-              accessibilityRole="button"
-              accessibilityLabel="Save phone number"
-            >
-              <Text style={styles.savePhoneText}>{saving ? 'Saving...' : 'Save Phone'}</Text>
-            </AnimatedPressable>
-            <Text style={styles.adminNote}>
-              Other details are locked. Visit the administration office to request changes.
-            </Text>
+
+            {isStudent ? (
+              <>
+                <Text style={styles.miniLabel}>Phone</Text>
+                <TextInput
+                  style={styles.phoneInput}
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="Add your phone number"
+                  placeholderTextColor="#64748B"
+                  keyboardType="phone-pad"
+                  editable={!saving}
+                />
+                {error ? <Text style={styles.error}>{error}</Text> : null}
+                <AnimatedPressable
+                  style={[styles.savePhone, saving && styles.savePhoneDisabled]}
+                  onPress={handleSave}
+                  disabled={saving}
+                  accessibilityRole="button"
+                  accessibilityLabel="Save phone number"
+                >
+                  <Text style={styles.savePhoneText}>{saving ? 'Saving...' : 'Save Phone'}</Text>
+                </AnimatedPressable>
+                <Text style={styles.adminNote}>
+                  Other details are locked. Visit the administration office to request changes.
+                </Text>
+              </>
+            ) : (
+              <>
+                {profile?.title ? (
+                  <>
+                    <Text style={styles.miniLabel}>Title</Text>
+                    <Text style={styles.miniValue}>{profile.title}</Text>
+                  </>
+                ) : null}
+              </>
+            )}
           </View>
 
-          <View style={styles.infoCard}>
-            <Text style={styles.sectionTitle}>Academic Information</Text>
-            <Text style={styles.miniLabel}>Educational Level</Text>
-            <Text style={styles.miniValue}>{level || '—'}</Text>
-            <Text style={styles.miniLabel}>Course</Text>
-            <Text style={styles.miniValue}>{course || '—'}</Text>
-            <View style={styles.twoCol}>
-              <View style={styles.twoColItem}>
-                <Text style={styles.miniLabel}>Year Level</Text>
-                <Text style={styles.miniValue}>{year || '—'}</Text>
-              </View>
-              <View style={styles.twoColItem}>
-                <Text style={styles.miniLabel}>Block</Text>
-                <Text style={styles.miniValue}>{block || '—'}</Text>
+          {isStudent && (
+            <View style={styles.infoCard}>
+              <Text style={[styles.sectionTitle, styles.sectionTitleCenter]}>Academic Information</Text>
+              <View style={styles.academicRow}>
+                <View style={styles.academicCell}>
+                  {leftColumn.map((field) => (
+                    <View key={field.label}>
+                      <Text style={styles.miniLabel}>{field.label}</Text>
+                      <Text style={styles.miniValue}>{field.value}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={styles.academicCell}>
+                  {rightColumn.map((field) => (
+                    <View key={field.label}>
+                      <Text style={styles.miniLabel}>{field.label}</Text>
+                      <Text style={styles.miniValue}>{field.value}</Text>
+                    </View>
+                  ))}
+                </View>
               </View>
             </View>
-          </View>
+          )}
 
           <AnimatedPressable
             style={styles.signOutGlass}
@@ -307,120 +322,6 @@ export default function CampusProfileScreen() {
       </View>
     );
   }
-
-  return (
-    <View style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.title}>Profile</Text>
-
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Ionicons name="shield-outline" size={22} color={COLORS.primary} />
-              <Text style={styles.statLabel}>Role</Text>
-              <Text style={styles.statValue}>
-                {profile ? ROLE_LABEL[profile.role] : '...'}
-              </Text>
-            </View>
-            <View style={styles.statCard}>
-              <Ionicons name="calendar-outline" size={22} color={COLORS.primary} />
-              <Text style={styles.statLabel}>Member since</Text>
-              <Text style={styles.statValue}>
-                {profile ? formatDate(profile.created_at) : '...'}
-              </Text>
-            </View>
-            <View style={styles.statCard}>
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={22}
-                color={COLORS.primary}
-              />
-              <Text style={styles.statLabel}>Events attended</Text>
-              <Text style={styles.statValue}>{attended}</Text>
-            </View>
-          </View>
-
-          <Text style={styles.sectionTitle}>Personal Information</Text>
-          <Text style={styles.label}>Email (read-only)</Text>
-          <View style={styles.readonlyBox}>
-            <Text style={styles.readonlyText}>{profile?.email ?? user?.email ?? ''}</Text>
-          </View>
-
-          <Text style={styles.label}>Full name</Text>
-          <TextInput
-            style={styles.input}
-            value={fullName}
-            onChangeText={setFullName}
-            placeholder="Full name"
-            placeholderTextColor={COLORS.textSecondary}
-            editable={!saving}
-          />
-
-          <Text style={styles.label}>Phone</Text>
-          <TextInput
-            style={styles.input}
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="Phone"
-            placeholderTextColor={COLORS.textSecondary}
-            keyboardType="phone-pad"
-            editable={!saving}
-          />
-
-          <Text style={styles.label}>Student number</Text>
-          <TextInput
-            style={styles.input}
-            value={studentNo}
-            onChangeText={setStudentNo}
-            placeholder="Student number"
-            placeholderTextColor={COLORS.textSecondary}
-            editable={!saving}
-          />
-
-          <Text style={styles.label}>Title</Text>
-          <TextInput
-            style={styles.input}
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Title (e.g. Mr., Ms.)"
-            placeholderTextColor={COLORS.textSecondary}
-            editable={!saving}
-          />
-
-          <Text style={styles.sectionTitle}>Educational Information</Text>
-          <EducationFields
-            value={education}
-            onChange={setEducation}
-            errors={levelErrors}
-            disabled={saving}
-          />
-
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-
-          <View style={styles.actions}>
-            <AnimatedPressable
-              style={styles.signOutGlass}
-              onPress={handleSignOut}
-              disabled={signingOut}
-              accessibilityRole="button"
-              accessibilityLabel="Sign Out"
-              glowColor="#EF4444"
-            >
-              <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-              <Text style={styles.signOutGlassText}>{signingOut ? 'Signing out...' : 'Sign Out'}</Text>
-            </AnimatedPressable>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
-  );
 }
 
 const styles = StyleSheet.create({
@@ -458,8 +359,12 @@ const styles = StyleSheet.create({
     padding: 16, marginBottom: 12,
   },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: '#162660', marginBottom: 10 },
+  sectionTitleCenter: { textAlign: 'center' },
   miniLabel: { fontSize: 12, fontWeight: '600', color: '#4A5878', marginTop: 8 },
   miniValue: { fontSize: 15, color: '#162660', marginTop: 2 },
+  /** Two-column academic grid: label over value, cells share the width. */
+  academicRow: { flexDirection: 'row', gap: 12 },
+  academicCell: { flex: 1 },
   phoneInput: {
     backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
     borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
@@ -473,8 +378,6 @@ const styles = StyleSheet.create({
   savePhoneDisabled: { opacity: 0.6 },
   savePhoneText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   adminNote: { fontSize: 12, color: '#4A5878', fontStyle: 'italic', lineHeight: 17, marginTop: 10 },
-  twoCol: { flexDirection: 'row', gap: 12 },
-  twoColItem: { flex: 1 },
   label: { fontSize: 14, fontWeight: '600', color: '#162660', marginBottom: 6, marginTop: 10 },
   input: {
     backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,

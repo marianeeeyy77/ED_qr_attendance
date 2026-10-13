@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AnimatedPressable from '@/components/AnimatedPressable';
 import QRDisplay from '@/components/QRDisplay';
-import StatusPill, { eventStatusTone } from '@/components/StatusPill';
+import StatusPill from '@/components/StatusPill';
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
 import { getEventById, qrPayload, setEventStatus } from '@/lib/campusqr/events';
@@ -91,23 +91,44 @@ export default function CampusQrDisplayScreen() {
           <>
             <View style={styles.header}>
               <Text style={styles.title}>{event.name}</Text>
-              <StatusPill label={event.status} tone={eventStatusTone(event.status)} />
+              <StatusPill
+                label={event.status}
+                tone={
+                  event.status === 'open'
+                    ? 'success'
+                    : event.status === 'closed'
+                    ? 'danger'
+                    : 'warning'
+                }
+              />
             </View>
             <Text style={styles.meta}>{formatDateTime(event.start_datetime)}</Text>
             {event.venue ? <Text style={styles.meta}>{event.venue}</Text> : null}
+            {event.status === 'closed' && (
+              <View style={styles.closedNotice}>
+                <Ionicons name="alert-circle" size={18} color={COLORS.danger} />
+                <Text style={styles.closedNoticeText}>
+                  This event is closed — students can no longer check in.
+                </Text>
+              </View>
+            )}
             <View style={styles.qrWrap}>
               <QRDisplay value={qrPayload(event)} size={264} caption={qrPayload(event)} />
             </View>
             <AnimatedPressable style={styles.secondaryButton} onPress={handleCopy}>
-              <Ionicons name="keypad-outline" size={18} color={COLORS.primary} />
+              <View style={styles.secondaryIcon}>
+                <Ionicons name="keypad-outline" size={18} color={COLORS.primary} />
+              </View>
               <Text style={styles.secondaryText}>How do students check in?</Text>
             </AnimatedPressable>
             <AnimatedPressable style={styles.secondaryButton} onPress={handleToggle} disabled={busy}>
-              <Ionicons
-                name={event.status === 'open' ? 'lock-closed-outline' : 'lock-open-outline'}
-                size={18}
-                color={COLORS.primary}
-              />
+              <View style={styles.secondaryIcon}>
+                <Ionicons
+                  name={event.status === 'open' ? 'lock-closed-outline' : 'lock-open-outline'}
+                  size={18}
+                  color={COLORS.primary}
+                />
+              </View>
               <Text style={styles.secondaryText}>
                 {busy ? 'Working...' : event.status === 'open' ? 'Close event' : 'Open event'}
               </Text>
@@ -128,11 +149,18 @@ const styles = StyleSheet.create({
   meta: { fontSize: 13, color: COLORS.textSecondary, width: '100%', marginBottom: 2 },
   hint: { fontSize: 14, color: COLORS.textSecondary },
   qrWrap: { marginVertical: 24, width: '100%' },
-  secondaryButton: {
-    minHeight: 48, width: '100%', flexDirection: 'row', gap: 8,
-    alignItems: 'center', justifyContent: 'center',
-    backgroundColor: COLORS.card, borderRadius: 12,
-    borderWidth: 1, borderColor: COLORS.border, marginBottom: 10,
+  closedNotice: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, width: '100%',
+    backgroundColor: 'rgba(220, 38, 38, 0.10)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(220, 38, 38, 0.35)',
+    paddingHorizontal: 12, paddingVertical: 10, marginTop: 12,
   },
-  secondaryText: { fontSize: 15, fontWeight: '600', color: COLORS.primary },
+  closedNoticeText: { flex: 1, fontSize: 13, color: COLORS.danger, fontWeight: '600', lineHeight: 18 },
+  secondaryButton: {
+    minHeight: 48, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.card, borderRadius: 12,
+    borderWidth: 1, borderColor: COLORS.border, marginBottom: 10, position: 'relative',
+  },
+  secondaryIcon: { position: 'absolute', left: 16, alignItems: 'center', justifyContent: 'center' },
+  secondaryText: { flex: 1, fontSize: 15, fontWeight: '600', color: COLORS.primary, textAlign: 'center', paddingHorizontal: 32 },
 });

@@ -23,6 +23,7 @@ const TABLES: RealtimeTable[] = [
   'attendance',
   'profiles',
   'audit_logs',
+  'appeals',
 ];
 
 const ECHO_WINDOW_MS = 5000;

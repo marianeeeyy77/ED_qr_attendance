@@ -2,6 +2,11 @@ import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import AppBackground from '@/components/AppBackground';
+import { installHarmlessErrorFilter } from '@/lib/errors';
+
+// Swallow the dev-only "Unable to activate keep awake" rejection from Expo Go
+// before the first screen mounts (see lib/errors.ts).
+installHarmlessErrorFilter();
 
 /**
  * Root layout. School Attendance System is the entire app now — the legacy

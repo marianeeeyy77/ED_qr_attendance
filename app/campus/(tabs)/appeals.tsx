@@ -1,44 +1,91 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import AnimatedPressable from '@/components/AnimatedPressable';
-import { COLORS } from '@/constants/colors';
+import { useToast } from '@/components/CampusToast';
+import { COLORS, SPACING } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
 import {
+  listAppealableEvents,
   listOwnAppeals,
-  listTeacherQueue,
+  listStaffQueue,
   reviewAppeal,
   submitAppeal,
   type AppealRow,
   type AppealStatus,
+  type AppealableEvent,
 } from '@/lib/campusqr/appeals';
-import { updateAttendance } from '@/lib/campusqr/attendance';
-import { listVisibleEvents } from '@/lib/campusqr/events';
-import { useToast } from '@/components/CampusToast';
+import {
+  useCampusRealtime,
+  useRealtimeStatusToast,
+} from '@/lib/campusqr/realtime';
 import { useCampusRole } from '@/lib/campusqr/roles';
-import type { EventRow } from '@/types/database';
+
 type Filter = 'all' | AppealStatus;
+
+/**
+ * Appeals — one appeal per absent student per closed event (spec):
+ *   Student → picks ONLY the closed events they were marked Absent for
+ *             (live), submits a reason, and tracks their own appeals +
+ *             decisions. Entry point: the Appeal button on an absent row
+ *             in Attendance history (or this screen directly).
+ *   Staff   → reads the queue (admin: every appeal; teacher: their own
+ *             events) and Approves (-> Excused) or Declines (stays Absent)
+ *             each appeal individually, with an optional note back.
+ * Live via the shared realtime channel (appeals + attendance + events).
+ */
 export default function AppealsScreen() {
   const { user } = useAuth();
   const { role, isStudent } = useCampusRole();
   const toast = useToast();
+  const onStatus = useRealtimeStatusToast(toast);
+  const params = useLocalSearchParams<{ eventId?: string; attendanceId?: string }>();
+
   const [filter, setFilter] = useState<Filter>('all');
   const [rows, setRows] = useState<AppealRow[]>([]);
-  const [events, setEvents] = useState<EventRow[]>([]);
+  const [appealable, setAppealable] = useState<AppealableEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState('');
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<Record<string, string>>({});
+
+  const student = isStudent || role === null;
+
   const load = useCallback(async () => {
     if (!user?.id) return;
-    if (isStudent || role === null) {
+    if (student) {
       setRows(await listOwnAppeals(user.id));
-      setEvents(await listVisibleEvents('student', user.id));
+      setAppealable(await listAppealableEvents(user.id));
     } else {
-      setRows(await listTeacherQueue(user.id));
+      setRows(await listStaffQueue(user.id, role!));
     }
-  }, [user?.id, isStudent, role]);
+  }, [user?.id, student, role]);
+
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  useCampusRealtime(
+    (change) => {
+      // `events` → a close/reopen changes which absences are appealable
+      // (and event names shown beside each appeal).
+      if (
+        change.table === 'appeals' ||
+        change.table === 'attendance' ||
+        change.table === 'events'
+      ) {
+        load();
+      }
+    },
+    onStatus
+  );
+
+  // Deep-link preselect: My Attendance -> "Appeal" on an absent row.
+  useEffect(() => {
+    if (!params.eventId) return;
+    if (appealable.some((event) => event.event_id === params.eventId)) {
+      setSelectedEvent(params.eventId);
+    }
+  }, [params.eventId, appealable]);
+
   const counts = {
     pending: rows.filter((a) => a.status === 'pending').length,
     approved: rows.filter((a) => a.status === 'approved').length,
@@ -46,59 +93,83 @@ export default function AppealsScreen() {
   };
   const visible = filter === 'all' ? rows : rows.filter((a) => a.status === filter);
   const statusColor = (s: AppealStatus) => (s === 'pending' ? '#F59E0B' : s === 'approved' ? '#10B981' : '#EF4444');
+
   const handleSubmit = async () => {
     if (!user?.id) return;
-    if (!selectedEvent) { toast.error('Choose an event first.'); return; }
+    const pick = appealable.find((event) => event.event_id === selectedEvent);
+    if (!pick) { toast.error('Choose an absent event first.'); return; }
     if (!reason.trim()) { toast.error('Please explain your appeal.'); return; }
     setSubmitting(true);
     try {
-      const { error } = await submitAppeal({ studentId: user.id, eventId: selectedEvent, reason });
+      const { error } = await submitAppeal({
+        studentId: user.id,
+        eventId: pick.event_id,
+        attendanceId: pick.attendance_id,
+        reason,
+      });
       if (error) { toast.error(error); return; }
       toast.success('Appeal submitted.');
       setReason(''); setSelectedEvent(''); load();
     } finally { setSubmitting(false); }
   };
+
   const handleReview = (item: AppealRow, approved: boolean) => {
     const note = (feedback[item.id] ?? '').trim();
     Alert.alert(
-      approved ? 'Accept appeal' : 'Reject appeal',
+      approved ? 'Approve appeal' : 'Decline appeal',
       approved
-        ? `Convert ${item.student?.full_name ?? 'student'} to Excused?`
-        : `Keep the original mark for ${item.student?.full_name ?? 'student'}?`,
+        ? `Mark ${item.student?.full_name ?? 'this student'} as Excused for "${item.event?.name ?? 'this event'}"?`
+        : `Keep the Absent mark for ${item.student?.full_name ?? 'this student'}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: approved ? 'Accept' : 'Reject', style: approved ? 'default' : 'destructive',
+          text: approved ? 'Approve' : 'Decline',
+          style: approved ? 'default' : 'destructive',
           onPress: async () => {
-            const { error } = await reviewAppeal(item.id, approved ? 'approved' : 'rejected', note || null);
+            const { error } = await reviewAppeal(
+              item.id,
+              approved ? 'approved' : 'rejected',
+              note || null,
+              item.attendance_id
+            );
             if (error) { toast.error(error); return; }
-            if (approved && item.attendance_id) {
-              const { error: attError } = await updateAttendance(item.attendance_id, 'excused');
-              if (attError) { toast.error(attError); return; }
-            }
-            toast.success(approved ? 'Appeal accepted — marked Excused.' : 'Appeal rejected.');
+            toast.success(
+              approved
+                ? 'Appeal approved - record is now Excused.'
+                : 'Appeal declined - record stays Absent.'
+            );
             load();
           },
         },
       ]
     );
   };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Appeals</Text>
-      <AnimatedPressable style={styles.submit} accessibilityRole="button" accessibilityLabel="Submit New Appeal" onPress={isStudent || role === null ? handleSubmit : undefined} disabled={submitting} glowColor={COLORS.primary}>
-        <Text style={styles.submitText}>{submitting ? 'Submitting...' : '+ Submit New Appeal'}</Text>
-      </AnimatedPressable>
-      {(isStudent || role === null) && (
+      {student && (
+        <AnimatedPressable style={styles.submit} accessibilityRole="button" accessibilityLabel="Submit New Appeal" onPress={handleSubmit} disabled={submitting} glowColor={COLORS.primary}>
+          <Text style={styles.submitText}>{submitting ? 'Submitting...' : '+ Submit New Appeal'}</Text>
+        </AnimatedPressable>
+      )}
+      {student && (
         <View style={styles.formCard}>
-          <Text style={styles.formLabel}>Event</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventRow}>
-            {events.map((e) => (
-              <AnimatedPressable key={e.id} style={[styles.eventChip, selectedEvent === e.id && styles.eventChipActive]} onPress={() => setSelectedEvent(e.id)} accessibilityRole="button" accessibilityLabel={e.name} glowColor={COLORS.accent}>
-                <Text style={[styles.eventChipText, selectedEvent === e.id && styles.eventChipTextActive]} numberOfLines={1}>{e.name}</Text>
-              </AnimatedPressable>
-            ))}
-          </ScrollView>
+          <Text style={styles.formLabel}>Absent event</Text>
+          {appealable.length === 0 ? (
+            <Text style={styles.emptyHint}>
+              You have no absent records to appeal. Only closed events where
+              you were marked Absent can be appealed — once per event.
+            </Text>
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventRow}>
+              {appealable.map((event) => (
+                <AnimatedPressable key={event.event_id} style={[styles.eventChip, selectedEvent === event.event_id && styles.eventChipActive]} onPress={() => setSelectedEvent(event.event_id)} accessibilityRole="button" accessibilityLabel={event.name} glowColor={COLORS.accent}>
+                  <Text style={[styles.eventChipText, selectedEvent === event.event_id && styles.eventChipTextActive]} numberOfLines={1}>{event.name}</Text>
+                </AnimatedPressable>
+              ))}
+            </ScrollView>
+          )}
           <Text style={styles.formLabel}>Explanation</Text>
           <TextInput
             style={styles.reasonInput}
@@ -135,55 +206,59 @@ export default function AppealsScreen() {
           );
         })}
       </ScrollView>
-      <View style={styles.box}>
-        <ScrollView style={styles.boxList} contentContainerStyle={styles.boxListContent} showsVerticalScrollIndicator={false}>
-          {visible.map((item) => {
-            const color = statusColor(item.status);
-            return (
-              <View key={item.id} style={styles.appealCard}>
-                <View style={styles.appealHeader}>
-                  <Text style={styles.appealTitle}>{item.event?.name ?? 'Event'}</Text>
-                  <View style={[styles.badge, { backgroundColor: `${color}22`, borderColor: `${color}55` }]}>
-                    <Text style={[styles.badgeText, { color }]}>{item.status}</Text>
+      <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+        {visible.length === 0 && (
+          <Text style={styles.emptyHint}>
+            {student
+              ? 'Your submitted appeals will appear here.'
+              : 'No appeals match this filter.'}
+          </Text>
+        )}
+        {visible.map((item) => {
+          const color = statusColor(item.status);
+          return (
+            <View key={item.id} style={styles.appealCard}>
+              <View style={styles.appealHeader}>
+                <Text style={styles.appealTitle}>{item.event?.name ?? 'Event'}</Text>
+                <View style={[styles.badge, { backgroundColor: `${color}22`, borderColor: `${color}55` }]}>
+                  <Text style={[styles.badgeText, { color }]}>{item.status}</Text>
+                </View>
+              </View>
+              <Text style={styles.appealMeta}>
+                {(item.student ? `${item.student.full_name} • ` : '')}{item.reason}
+              </Text>
+              {item.feedback ? (
+                <View style={styles.feedback}>
+                  <Text style={styles.feedbackLabel}>Staff Feedback</Text>
+                  <Text style={styles.feedbackText}>{item.feedback}</Text>
+                </View>
+              ) : null}
+              {!student && item.status === 'pending' && (
+                <View style={styles.reviewBox}>
+                  <TextInput
+                    style={styles.feedbackInput}
+                    value={feedback[item.id] ?? ''}
+                    onChangeText={(v) => setFeedback((p) => ({ ...p, [item.id]: v }))}
+                    placeholder="Optional note back to student..."
+                    placeholderTextColor="#64748B"
+                  />
+                  <View style={styles.reviewRow}>
+                    <AnimatedPressable style={[styles.reviewBtn, styles.acceptBtn]} onPress={() => handleReview(item, true)} accessibilityRole="button" accessibilityLabel="Approve appeal" glowColor={COLORS.success}>
+                      <Text style={styles.reviewText}>Approve</Text>
+                    </AnimatedPressable>
+                    <AnimatedPressable style={[styles.reviewBtn, styles.rejectBtn]} onPress={() => handleReview(item, false)} accessibilityRole="button" accessibilityLabel="Decline appeal" glowColor={COLORS.danger}>
+                      <Text style={styles.reviewText}>Decline</Text>
+                    </AnimatedPressable>
                   </View>
                 </View>
-                <Text style={styles.appealMeta}>
-                  {(item.student ? `${item.student.full_name} • ` : '')}{item.reason}
-                </Text>
-                {item.feedback ? (
-                  <View style={styles.feedback}>
-                    <Text style={styles.feedbackLabel}>Teacher Feedback</Text>
-                    <Text style={styles.feedbackText}>{item.feedback}</Text>
-                  </View>
-                ) : null}
-                {!isStudent && item.status === 'pending' && (
-                  <View style={styles.reviewBox}>
-                    <TextInput
-                      style={styles.feedbackInput}
-                      value={feedback[item.id] ?? ''}
-                      onChangeText={(v) => setFeedback((p) => ({ ...p, [item.id]: v }))}
-                      placeholder="Optional note back to student..."
-                      placeholderTextColor="#64748B"
-                    />
-                    <View style={styles.reviewRow}>
-                      <AnimatedPressable style={[styles.reviewBtn, styles.acceptBtn]} onPress={() => handleReview(item, true)} accessibilityRole="button" accessibilityLabel="Accept appeal" glowColor={COLORS.success}>
-                        <Text style={styles.reviewText}>Accept</Text>
-                      </AnimatedPressable>
-                      <AnimatedPressable style={[styles.reviewBtn, styles.rejectBtn]} onPress={() => handleReview(item, false)} accessibilityRole="button" accessibilityLabel="Reject appeal" glowColor={COLORS.danger}>
-                        <Text style={styles.reviewText}>Reject</Text>
-                      </AnimatedPressable>
-                    </View>
-                  </View>
-                )}
-              </View>
-            );
-          })}
-        </ScrollView>
-      </View>
+              )}
+            </View>
+          );
+        })}
+      </ScrollView>
     </View>
   );
-}
-const styles = StyleSheet.create({
+}const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   title: { fontSize: 22, fontWeight: '700', color: '#162660', textAlign: 'center', paddingTop: 12, paddingBottom: 8 },
   submit: { backgroundColor: '#162660', borderRadius: 12, marginHorizontal: 16, paddingVertical: 14, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
@@ -192,13 +267,11 @@ const styles = StyleSheet.create({
   statCard: { flex: 1, backgroundColor: 'rgba(255, 253, 247, 0.88)', borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
   statValue: { fontSize: 20, fontWeight: '700', color: '#162660' },
   statLabel: { fontSize: 11, color: '#4A5878', marginTop: 2, textTransform: 'capitalize' },
-  pills: { paddingHorizontal: 16, gap: 8, marginBottom: 12 },
+  pills: { paddingHorizontal: 16, gap: 8, marginBottom: 20 },
   pill: { minHeight: 40, paddingHorizontal: 16, justifyContent: 'center', borderRadius: 999, backgroundColor: 'rgba(255, 253, 247, 0.88)', borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)' },
   pillText: { fontSize: 13, fontWeight: '600', color: '#4A5878', textTransform: 'capitalize' },
   pillTextActive: { color: '#FFFFFF' },
-  box: { backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16, marginHorizontal: 16, padding: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', maxHeight: 320, marginBottom: 24 },
-  boxList: { maxHeight: 296 },
-  boxListContent: { gap: 10 },
+  list: { paddingHorizontal: 16, paddingTop: SPACING.listTop, paddingBottom: 40, gap: 10, flexGrow: 1, justifyContent: 'flex-start' },
   appealCard: { backgroundColor: 'rgba(22, 38, 96, 0.06)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 12 },
   appealHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   appealTitle: { fontSize: 15, fontWeight: '700', color: '#162660', flex: 1 },
@@ -213,6 +286,7 @@ const styles = StyleSheet.create({
     marginTop: 10, padding: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
   },
   formLabel: { fontSize: 12, fontWeight: '700', color: '#3A4A6B', marginTop: 6, marginBottom: 6 },
+  emptyHint: { fontSize: 13, color: '#4A5878', lineHeight: 18, paddingVertical: 6 },
   eventRow: { flexDirection: 'row', gap: 8, paddingRight: 8 },
   eventChip: {
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,

@@ -4,6 +4,7 @@ import type {
   AttendanceRow,
   AttendanceStatus,
   CheckInResult,
+  EventStatus,
 } from '@/types/database';
 import { suppressEcho } from './realtime';
 import { refusedMessage, verifyPatch } from './verify';
@@ -18,9 +19,15 @@ import { refusedMessage, verifyPatch } from './verify';
 
 export type OwnAttendanceRecord = {
   id: string;
+  event_id: string;
   status: AttendanceStatus;
   recorded_at: string;
-  event: { name: string; start_datetime: string | null } | null;
+  event: {
+    name: string;
+    start_datetime: string | null;
+    /** Null when the event row is unreadable (e.g. a hidden draft). */
+    status: EventStatus | null;
+  } | null;
 };
 
 export type EventAttendanceRecord = AttendanceRow & {
@@ -123,8 +130,8 @@ export async function fetchOwnHistory(
   const { data, error } = await supabase
     .from('attendance')
     .select(
-      `id, status, recorded_at,
-       event:events ( name, start_datetime )`
+      `id, event_id, status, recorded_at,
+       event:events ( name, start_datetime, status )`
     )
     .eq('student_id', studentId)
     .order('recorded_at', { ascending: false });

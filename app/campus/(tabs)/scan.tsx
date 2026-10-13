@@ -115,11 +115,13 @@ export default function CampusScanScreen() {
           <View style={styles.segment}>
             <AnimatedPressable
               style={[styles.segmentButton, phase === 'camera' && styles.segmentActive]}
+              outerStyle={styles.segmentOuter}
               onPress={() => { setPhase('camera'); handleScanAgain(); }}>
               <Text style={[styles.segmentText, phase === 'camera' && styles.segmentTextActive]}>Camera</Text>
             </AnimatedPressable>
             <AnimatedPressable
               style={[styles.segmentButton, phase === 'manual' && styles.segmentActive]}
+              outerStyle={styles.segmentOuter}
               onPress={() => { setPhase('manual'); handleScanAgain(); }}>
               <Text style={[styles.segmentText, phase === 'manual' && styles.segmentTextActive]}>Manual code</Text>
             </AnimatedPressable>
@@ -190,6 +192,9 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 4, marginBottom: 16,
   },
   segmentButton: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 999 },
+  // The outer Pressable must also flex so both segments split the row 50/50
+  // (inner `style` alone would shrink-wrap each to its text width).
+  segmentOuter: { flex: 1 },
   segmentActive: { backgroundColor: '#162660' },
   segmentText: { fontSize: 15, fontWeight: '600', color: '#4A5878' },
   segmentTextActive: { color: '#FFFFFF' },

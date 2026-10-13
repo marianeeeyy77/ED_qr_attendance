@@ -160,7 +160,7 @@ export type AdminRpcResult = {
 
 // --------------------------------------------------------- realtime types
 
-export type RealtimeTable = 'events' | 'attendance' | 'profiles' | 'audit_logs';
+export type RealtimeTable = 'events' | 'attendance' | 'profiles' | 'audit_logs' | 'appeals';
 
 export type RealtimeChange = {
   table: RealtimeTable;

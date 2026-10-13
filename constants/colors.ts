@@ -181,3 +181,36 @@ export const DEPTH = {
   glowPersonnel: '#162660',
   glowStudent: '#2A5BD7',
 } as const;
+
+/**
+ * Shared spacing / radius / button-size tokens so every screen lays out its
+ * buttons and cards with one rhythm (instead of ad-hoc 6/8/10pt gaps and
+ * 44/48pt heights drifting per file).
+ */
+export const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  /** Gap between sibling buttons inside an action row. */
+  buttonGap: 8,
+  /** Gap between list cards. */
+  cardGap: 12,
+  /** Top inset before a list that sits below a control bar (Create/filters). */
+  listTop: 12,
+} as const;
+
+export const RADIUS = {
+  button: 12,
+  card: 16,
+  pill: 999,
+  /** Bottom-nav active button surface. */
+  nav: 14,
+} as const;
+
+export const BTN = {
+  /** Primary / full-width CTA touch height. */
+  primary: 48,
+  /** Secondary / inline action touch height. */
+  secondary: 44,
+} as const;

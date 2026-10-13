@@ -5,7 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import Dropdown, { type DropdownOption } from '@/components/Dropdown';
 import { useToast } from '@/components/CampusToast';
-import { COLORS } from '@/constants/colors';
+import { COLORS, SPACING } from '@/constants/colors';
 import {
   deleteAttendance,
   updateAttendance,
@@ -279,12 +279,12 @@ const styles = StyleSheet.create({
   meta: { fontSize: 13, color: '#4A5878', marginBottom: 2 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, borderWidth: 1 },
   statusText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
-  editRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 4, marginTop: 8 },
+  editRow: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.buttonGap, marginTop: 8 },
   editDropdown: { flex: 1 },
   deleteButton: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   overrideBox: { marginTop: 10, gap: 8 },
   overrideLabel: { fontSize: 12, fontWeight: '700', color: '#3A4A6B' },
-  overrideRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
+  overrideRow: { flexDirection: 'row', gap: SPACING.buttonGap, flexWrap: 'wrap' },
   overrideBtn: {
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12,
     borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.16)', backgroundColor: 'rgba(255, 253, 247, 0.88)',

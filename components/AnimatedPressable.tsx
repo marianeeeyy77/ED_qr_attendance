@@ -9,6 +9,7 @@ import {
 type Props = {
   children: React.ReactNode;
   onPress?: () => void;
+  onLongPress?: () => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   /** Scale applied on press-in (default 0.96). */
@@ -19,6 +20,11 @@ type Props = {
   accessibilityLabel?: string;
   /** Passed through to the underlying Pressable (e.g. tab selected state). */
   accessibilityState?: { selected?: boolean; disabled?: boolean };
+  /** Extra style applied to the outer Pressable (layout). Defaults to
+   *  `undefined` so existing callers keep their current behaviour; the tab
+   *  bar passes the navigator's `style` (which carries `flex: 1`) here so
+   *  each button fills its equal-width slot. */
+  outerStyle?: StyleProp<ViewStyle>;
   /** Extra touch area (passed through to Pressable). */
   hitSlop?: number;
   /** Extra style merged when the pointer/web hover is active. */
@@ -39,6 +45,7 @@ type Props = {
 export default function AnimatedPressable({
   children,
   onPress,
+  onLongPress,
   disabled = false,
   style,
   pressScale = 0.96,
@@ -48,6 +55,7 @@ export default function AnimatedPressable({
   accessibilityState,
   hitSlop,
   hoverStyle,
+  outerStyle,
 }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
   const halo = useRef(new Animated.Value(0)).current;
@@ -119,11 +127,13 @@ export default function AnimatedPressable({
   return (
     <Pressable
       onPress={onPress}
+      onLongPress={onLongPress}
       onPressIn={pressIn}
       onPressOut={pressOut}
       onHoverIn={hoverIn}
       onHoverOut={hoverOut}
       disabled={disabled}
+      style={outerStyle}
       accessibilityRole={accessibilityRole}
       accessibilityLabel={accessibilityLabel}
       accessibilityState={accessibilityState}

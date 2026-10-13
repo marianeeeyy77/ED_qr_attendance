@@ -13,7 +13,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import EmptyState from '@/components/EmptyState';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import { useToast } from '@/components/CampusToast';
-import { COLORS } from '@/constants/colors';
+import { COLORS, SPACING, RADIUS, BTN } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
 import {
   deleteEvent,
@@ -114,7 +114,7 @@ export default function EventsScreen() {
   }
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{isStaff ? 'Manage Events' : 'Events'}</Text>
+      <Text style={styles.title}>{isStaff ? 'Manage Events' : 'Events list'}</Text>
       {!isStaff && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
           {filters.map((option) => {
@@ -266,10 +266,10 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '700', color: '#162660', textAlign: 'center', paddingTop: 12, paddingBottom: 4 },
   createButton: {
     backgroundColor: '#162660', borderRadius: 12, marginHorizontal: 16, paddingVertical: 14, minHeight: 48,
-    alignItems: 'center', justifyContent: 'center', marginVertical: 8,
+    alignItems: 'center', justifyContent: 'center', marginTop: 4, marginBottom: 8,
   },
   createText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
-  filterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  filterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 20, gap: 8 },
   filterChip: {
     minHeight: 40, paddingHorizontal: 16, justifyContent: 'center',
     borderRadius: 999, backgroundColor: 'rgba(255, 253, 247, 0.88)',
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   filterText: { fontSize: 14, fontWeight: '600', color: '#4A5878', textTransform: 'capitalize' },
   filterTextActive: { color: '#FFFFFF' },
-  list: { paddingHorizontal: 16, paddingBottom: 40, gap: 12 },
+  list: { paddingHorizontal: 16, paddingTop: SPACING.listTop, paddingBottom: 40, gap: SPACING.cardGap, flexGrow: 1, justifyContent: 'flex-start' },
   card: {
     backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
     borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 16,
@@ -289,15 +289,15 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
   meta: { fontSize: 13, color: '#4A5878', marginBottom: 2 },
   description: { fontSize: 14, color: '#162660', marginTop: 6, lineHeight: 20 },
-  actions: { flexDirection: 'row', marginTop: 12, gap: 6, flexWrap: 'wrap', alignItems: 'center' },
+  actions: { flexDirection: 'row', marginTop: 12, gap: SPACING.buttonGap, flexWrap: 'wrap', alignItems: 'center' },
   qrButton: {
-    minHeight: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 6,
-    backgroundColor: '#162660', borderRadius: 12, justifyContent: 'center',
+    minHeight: BTN.secondary, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 6,
+    backgroundColor: '#162660', borderRadius: RADIUS.button, justifyContent: 'center',
   },
   qrText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
   actionButton: {
-    minHeight: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 4,
-    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    minHeight: BTN.secondary, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 4,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: RADIUS.button,
     borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
   },
   actionText: { fontSize: 14, fontWeight: '600', color: '#162660' },

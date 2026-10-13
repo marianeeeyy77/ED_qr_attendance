@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -8,9 +8,9 @@ import AnimatedPressable from '@/components/AnimatedPressable';
 import Dropdown from '@/components/Dropdown';
 import EmptyState from '@/components/EmptyState';
 import { useToast } from '@/components/CampusToast';
-import { COLORS, SLATE } from '@/constants/colors';
+import { COLORS, SPACING } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
-import { listVisibleEvents, qrPayload, rotateQrToken } from '@/lib/campusqr/events';
+import { listVisibleEvents, qrPayload } from '@/lib/campusqr/events';
 import { formatDateTime } from '@/lib/campusqr/format';
 import {
   useCampusRealtime,
@@ -35,7 +35,6 @@ export default function GenerateQrScreen() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [loading, setLoading] = useState(true);
-  const [rotation, setRotation] = useState(0);
 
   const load = useCallback(async () => {
     const rows = await listVisibleEvents(role, user?.id ?? null);
@@ -53,25 +52,6 @@ export default function GenerateQrScreen() {
       load();
     }, [load])
   );
-
-  // Rotate the active event every 30s when the screen is visible.
-  useEffect(() => {
-    if (role !== 'teacher') return;
-    const interval = setInterval(async () => {
-      if (!selectedId) return;
-      const { data, error } = await rotateQrToken(selectedId);
-      if (error) {
-        toast.error(`Rotation failed: ${error}`);
-        return;
-      }
-      if (data) {
-        setSelectedId(data.id);
-        setRotation((r) => r + 1);
-        toast.info('QR rotated');
-      }
-    }, 30_000);
-    return () => clearInterval(interval);
-  }, [role, selectedId, toast]);
 
   useCampusRealtime(
     (change) => {
@@ -143,18 +123,16 @@ export default function GenerateQrScreen() {
                     <Text style={styles.codeText}>{qrPayload(selected)}</Text>
                   </View>
                   <View style={styles.qrMetaRow}>
-                    <View style={[styles.badge, { backgroundColor: `${SLATE.indigo}22` }]}>
-                      <Text style={[styles.badgeText, { color: SLATE.indigo }]}>Rotation {rotation}</Text>
-                    </View>
                     <View style={styles.tipRow}>
-                      <Ionicons name="time" size={14} color="#4A5878" />
-                      <Text style={styles.tipText}>Auto-rotates every 30 seconds when open</Text>
+                      <Ionicons name="information-circle-outline" size={14} color="#4A5878" />
+                      <Text style={styles.tipText}>Project this code for students to scan while the event is open</Text>
                     </View>
                   </View>
                 </View>
                 <View style={styles.actionRow}>
                   <AnimatedPressable
                     style={[styles.actionBtn, { backgroundColor: '#162660' }]}
+                    outerStyle={styles.actionBtnOuter}
                     onPress={() => router.push(`/campus/qr-display?id=${selected.id}`)}
                     glowColor={COLORS.primary}
                     accessibilityRole="button"
@@ -165,6 +143,7 @@ export default function GenerateQrScreen() {
                   </AnimatedPressable>
                   <AnimatedPressable
                     style={[styles.actionBtn, { backgroundColor: '#2A5BD7' }]}
+                    outerStyle={styles.actionBtnOuter}
                     onPress={() => toast.info('Type the code shown into the Scan screen.')}
                     glowColor="#2A5BD7"
                     accessibilityRole="button"
@@ -172,20 +151,6 @@ export default function GenerateQrScreen() {
                   >
                     <Ionicons name="copy-outline" size={18} color="#FFFFFF" />
                     <Text style={styles.actionBtnText}>Copy Code</Text>
-                  </AnimatedPressable>
-                  <AnimatedPressable
-                    style={[styles.actionBtn, styles.rotateBtn]}
-                    onPress={async () => {
-                      const { data, error } = await rotateQrToken(selected.id);
-                      if (error) { toast.error(`Rotation failed: ${error}`); return; }
-                      if (data) { setSelectedId(data.id); setRotation((r) => r + 1); toast.info('QR rotated'); }
-                    }}
-                    glowColor={COLORS.warning}
-                    accessibilityRole="button"
-                    accessibilityLabel="Rotate QR"
-                  >
-                    <Ionicons name="refresh" size={18} color="#FFFFFF" />
-                    <Text style={[styles.actionBtnText, styles.rotateText]}>Rotate Now</Text>
                   </AnimatedPressable>
                 </View>
               </>
@@ -236,18 +201,14 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   codeText: { color: '#162660', fontWeight: '700', textAlign: 'center', fontSize: 13 },
-  actionRow: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  actionRow: { flexDirection: 'row', gap: SPACING.buttonGap, marginTop: 14 },
   actionBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 8, borderRadius: 12, paddingVertical: 13, minHeight: 48,
   },
-  actionBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
-  rotateText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
-  rotateBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, borderRadius: 12, paddingVertical: 13, minHeight: 48,
-    backgroundColor: '#F59E0B',
-  },
+  // The outer Pressable must also flex so both buttons split the full row width.
+  actionBtnOuter: { flex: 1 },
+  actionBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15, textAlign: 'center' },
   qrMetaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12 },
   tipRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, justifyContent: 'center' },
   tipText: { fontSize: 12, color: '#4A5878', textAlign: 'center' },

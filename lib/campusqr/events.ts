@@ -74,7 +74,7 @@ async function listTeacherIds(): Promise<string[]> {
 
 /**
  * Lists events visible to the given role (spec listVisibleEvents).
- * - student: only open events (RLS enforces the same).
+ * - student: open + closed events - their status flips live (RLS same).
  * - teacher: their OWN events (any status) PLUS admin-created events.
  *   RLS still restricts which of those rows the teacher may actually read
  *   (admin events come back only while `open`), so this mirrors the DB.
@@ -90,7 +90,7 @@ export async function listVisibleEvents(
     .order('start_datetime', { ascending: false, nullsFirst: false });
 
   if (role === 'student') {
-    query = query.eq('status', 'open');
+    query = query.in('status', ['open', 'closed']);
   } else if (role === 'teacher' && userId) {
     const adminIds = await listAdminIds();
     const creatorFilter =
