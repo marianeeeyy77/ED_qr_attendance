@@ -12,7 +12,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import EmptyState from '@/components/EmptyState';
 import AnimatedPressable from '@/components/AnimatedPressable';
+<<<<<<< HEAD
 import ScreenTransition from '@/components/ScreenTransition';
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { useToast } from '@/components/CampusToast';
 import { COLORS, SPACING, RADIUS, BTN } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
@@ -73,7 +76,11 @@ export default function EventsScreen() {
   const filters = isStaff ? STATUS_FILTERS : (['all', 'open', 'closed'] as Filter[]);
 
   const pillColor = (option: Filter) =>
+<<<<<<< HEAD
     option === 'open' ? '#10B981' : option === 'closed' ? '#EF4444' : option === 'draft' ? '#5098C3' : '#10367D';
+=======
+    option === 'open' ? '#10B981' : option === 'closed' ? '#EF4444' : option === 'draft' ? '#2A5BD7' : '#162660';
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
   const handleToggleStatus = async (event: EventRow) => {
     const next: EventStatus = event.status === 'open' ? 'closed' : 'open';
@@ -115,7 +122,10 @@ export default function EventsScreen() {
   }
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
       <ScreenTransition style={styles.flex}>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <Text style={styles.title}>{isStaff ? 'Manage Events' : 'Events list'}</Text>
       {!isStaff && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
@@ -162,6 +172,20 @@ export default function EventsScreen() {
         </ScrollView>
       )}
 
+<<<<<<< HEAD
+=======
+      {isStaff && (
+        <AnimatedPressable
+          style={styles.createButton}
+          onPress={() => router.push('/campus/event-form')}
+          glowColor={COLORS.primary}
+          accessibilityRole="button"
+          accessibilityLabel="Create New Event"
+        >
+          <Text style={styles.createText}>+ Create New Event</Text>
+        </AnimatedPressable>
+      )}
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {visible.length === 0 ? (
           <EmptyState
@@ -171,8 +195,13 @@ export default function EventsScreen() {
           />
         ) : (
           visible.map((event) => {
+<<<<<<< HEAD
             const canManage = isStaff;
             const statusColor = event.status === 'open' ? '#10B981' : event.status === 'closed' ? '#EF4444' : '#5098C3';
+=======
+            const canManage = isStaff && (role === 'admin' || event.created_by === user?.id);
+            const statusColor = event.status === 'open' ? '#10B981' : event.status === 'closed' ? '#EF4444' : '#2A5BD7';
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
             return (
               <View key={event.id} style={styles.card}>
                 <View style={styles.cardHeader}>
@@ -208,7 +237,11 @@ export default function EventsScreen() {
                         accessibilityRole="button"
                         accessibilityLabel="Edit event"
                       >
+<<<<<<< HEAD
                         <Ionicons name="create-outline" size={18} color="#10367D" />
+=======
+                        <Ionicons name="create-outline" size={18} color="#162660" />
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
                         <Text style={styles.actionText}>Edit</Text>
                       </AnimatedPressable>
                       <AnimatedPressable
@@ -221,7 +254,11 @@ export default function EventsScreen() {
                         <Ionicons
                           name={event.status === 'open' ? 'lock-closed-outline' : 'lock-open-outline'}
                           size={18}
+<<<<<<< HEAD
                           color="#10367D"
+=======
+                          color="#162660"
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
                         />
                         <Text style={styles.actionText}>{event.status === 'open' ? 'Close' : 'Open'}</Text>
                       </AnimatedPressable>
@@ -243,6 +280,7 @@ export default function EventsScreen() {
           })
         )}
       </ScrollView>
+<<<<<<< HEAD
       </ScreenTransition>
       {isStaff && (
         <AnimatedPressable
@@ -256,18 +294,24 @@ export default function EventsScreen() {
           <Ionicons name="add" size={28} color="#FFFFFF" />
         </AnimatedPressable>
       )}
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+<<<<<<< HEAD
   flex: { flex: 1 },
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   loadingContainer: {
     flex: 1, backgroundColor: COLORS.background,
     justifyContent: 'center', alignItems: 'center', gap: 12,
   },
   loadingText: { fontSize: 14, color: COLORS.textSecondary },
+<<<<<<< HEAD
   title: { fontSize: 22, fontWeight: '700', color: '#10367D', textAlign: 'center', paddingTop: 12, paddingBottom: 4 },
   // Rounded-square FAB (staff only), bottom-right above the tab bar.
   // outer = position/size, inner = surface (AnimatedPressable slots).
@@ -283,10 +327,24 @@ const styles = StyleSheet.create({
     minHeight: 40, paddingHorizontal: 16, justifyContent: 'center',
     borderRadius: 999, backgroundColor: 'rgba(235, 235, 235, 0.88)',
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)',
+=======
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', textAlign: 'center', paddingTop: 12, paddingBottom: 4 },
+  createButton: {
+    backgroundColor: '#162660', borderRadius: 12, marginHorizontal: 16, paddingVertical: 14, minHeight: 48,
+    alignItems: 'center', justifyContent: 'center', marginTop: 4, marginBottom: 8,
+  },
+  createText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  filterRow: { flexDirection: 'row', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 20, gap: 8 },
+  filterChip: {
+    minHeight: 40, paddingHorizontal: 16, justifyContent: 'center',
+    borderRadius: 999, backgroundColor: 'rgba(255, 253, 247, 0.88)',
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   },
   filterChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   filterText: { fontSize: 14, fontWeight: '600', color: '#4A5878', textTransform: 'capitalize' },
   filterTextActive: { color: '#FFFFFF' },
+<<<<<<< HEAD
   list: { paddingHorizontal: 16, paddingTop: SPACING.listTop, paddingBottom: 88, gap: SPACING.cardGap, flexGrow: 1, justifyContent: 'flex-start' },
   card: {
     backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 16,
@@ -302,13 +360,37 @@ const styles = StyleSheet.create({
   qrButton: {
     minHeight: BTN.secondary, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 6,
     backgroundColor: '#10367D', borderRadius: RADIUS.button, justifyContent: 'center',
+=======
+  list: { paddingHorizontal: 16, paddingTop: SPACING.listTop, paddingBottom: 40, gap: SPACING.cardGap, flexGrow: 1, justifyContent: 'flex-start' },
+  card: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 16,
+  },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 6 },
+  cardTitle: { fontSize: 17, fontWeight: '700', color: '#162660', flex: 1 },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
+  statusText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
+  meta: { fontSize: 13, color: '#4A5878', marginBottom: 2 },
+  description: { fontSize: 14, color: '#162660', marginTop: 6, lineHeight: 20 },
+  actions: { flexDirection: 'row', marginTop: 12, gap: SPACING.buttonGap, flexWrap: 'wrap', alignItems: 'center' },
+  qrButton: {
+    minHeight: BTN.secondary, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 6,
+    backgroundColor: '#162660', borderRadius: RADIUS.button, justifyContent: 'center',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   },
   qrText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
   actionButton: {
     minHeight: BTN.secondary, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 4,
+<<<<<<< HEAD
     backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: RADIUS.button,
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)',
   },
   actionText: { fontSize: 14, fontWeight: '600', color: '#10367D' },
+=======
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: RADIUS.button,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+  },
+  actionText: { fontSize: 14, fontWeight: '600', color: '#162660' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   deleteText: { color: '#EF4444' },
 });

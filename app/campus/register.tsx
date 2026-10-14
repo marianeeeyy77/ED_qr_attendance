@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+<<<<<<< HEAD
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import AnimatedPressable from '@/components/AnimatedPressable';
@@ -21,6 +22,15 @@ import Header from '@/components/Header';
 import ScreenTransition from '@/components/ScreenTransition';
 import { useToast } from '@/components/CampusToast';
 import { COLORS, BTN } from '@/constants/colors';
+=======
+
+import BusyButton from '@/components/BusyButton';
+import EducationFields from '@/components/EducationFields';
+import FadeInView from '@/components/FadeInView';
+import Header from '@/components/Header';
+import { useToast } from '@/components/CampusToast';
+import { COLORS } from '@/constants/colors';
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { signUp } from '@/lib/campusqr/auth';
 import {
   EMPTY_EDUCATION,
@@ -34,10 +44,13 @@ import {
  * the Educational Level dropdown that conditionally reveals fields per
  * level. Signup metadata NEVER carries role or is_active — the database
  * trigger hardcodes student.
+<<<<<<< HEAD
  *
  * Republic Act No. 10173 (Data Privacy Act of 2012): a mandatory consent
  * checkbox gates submission — the notice states what is collected, why, and
  * the user's access / correction / objection / erasure rights.
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
  */
 export default function CampusRegisterScreen() {
   const router = useRouter();
@@ -50,12 +63,19 @@ export default function CampusRegisterScreen() {
   const [studentNo, setStudentNo] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+<<<<<<< HEAD
   const [consent, setConsent] = useState(false);
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   const [education, setEducation] = useState<EducationValues>({
     ...EMPTY_EDUCATION,
   });
   const [levelErrors, setLevelErrors] = useState<EducationErrors>({});
   const [error, setError] = useState<string | null>(null);
+<<<<<<< HEAD
+=======
+  const [success, setSuccess] = useState(false);
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
@@ -89,11 +109,14 @@ export default function CampusRegisterScreen() {
       return;
     }
 
+<<<<<<< HEAD
     if (!consent) {
       setError('You must agree to the Data Privacy Notice to create an account.');
       return;
     }
 
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     setLoading(true);
     try {
       const { data, error: authError } = await signUp(email.trim(), password, {
@@ -115,11 +138,20 @@ export default function CampusRegisterScreen() {
       }
 
       if (data.session) {
+<<<<<<< HEAD
         toast.success('Account created. Please sign in.');
       } else {
         toast.success('Account created. Check your email to confirm, then sign in.');
       }
       router.replace('/campus/login');
+=======
+        toast.success('Account created successfully.');
+        router.replace('/campus/events');
+      } else {
+        setSuccess(true);
+        toast.success('Account created. Check your email to confirm.');
+      }
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     } catch (err) {
       const message =
         err instanceof Error
@@ -134,7 +166,10 @@ export default function CampusRegisterScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+<<<<<<< HEAD
       <ScreenTransition style={styles.flex}>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -147,7 +182,11 @@ export default function CampusRegisterScreen() {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.headerContainer}>
+<<<<<<< HEAD
               <Header title="School Attendance System" animated={false} />
+=======
+              <Header title="School Attendance System" />
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
             </View>
 
             <Text style={styles.title}>Create Account</Text>
@@ -159,7 +198,23 @@ export default function CampusRegisterScreen() {
               an administrator.
             </Text>
 
+<<<<<<< HEAD
             <View style={styles.fadeBody}>
+=======
+            <FadeInView delay={80} style={styles.fadeBody}>
+            {success ? (
+              <View style={styles.successContainer}>
+                <Text style={styles.successTitle}>Check your email!</Text>
+                <Text style={styles.successText}>
+                  We sent a confirmation link to {email}. Click the link to
+                  verify your account, then come back and sign in.
+                </Text>
+                <Link href="/campus/login" style={styles.link}>
+                  Back to Sign In
+                </Link>
+              </View>
+            ) : (
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
               <View style={styles.form}>
                 <Text style={styles.label}>Full Name</Text>
                 <TextInput
@@ -239,6 +294,7 @@ export default function CampusRegisterScreen() {
                   editable={!loading}
                 />
 
+<<<<<<< HEAD
                 <View style={styles.consentSection}>
                   <Text style={styles.consentTitle}>Data Privacy Notice</Text>
                   <Text style={styles.consentText}>
@@ -264,6 +320,8 @@ export default function CampusRegisterScreen() {
                   </AnimatedPressable>
                 </View>
 
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
                 {error && <Text style={styles.error}>{error}</Text>}
 
                 <View style={styles.actionContainer}>
@@ -276,6 +334,7 @@ export default function CampusRegisterScreen() {
                   />
                 </View>
               </View>
+<<<<<<< HEAD
 
             </View>
 
@@ -286,6 +345,20 @@ export default function CampusRegisterScreen() {
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
       </ScreenTransition>
+=======
+            )}
+
+            </FadeInView>
+
+            {!success && (
+              <Link href="/campus/login" style={styles.link}>
+                Already have an account? Sign In
+              </Link>
+            )}
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     </View>
   );
 }
@@ -295,7 +368,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+<<<<<<< HEAD
   flex: { flex: 1 },
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   keyboardView: {
     flex: 1,
   },
@@ -333,6 +409,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 12,
   },
+<<<<<<< HEAD
   consentSection: {
     marginTop: 16,
     paddingTop: 12,
@@ -384,6 +461,8 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     lineHeight: 18,
   },
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   form: {
     width: '100%',
     marginBottom: 24,

@@ -13,10 +13,17 @@ type Props = {
 // theme: the sweep stays in dark navy/royal-blue territory so the title is
 // always readable on cream (never washing out to white).
 const SHINE_COLORS = [
+<<<<<<< HEAD
   '#10367D', // royal navy (base)
   '#5098C3', // royal blue flash
   '#10367D', // royal navy
   '#204C9E', // mid navy
+=======
+  '#162660', // royal navy (base)
+  '#2A5BD7', // royal blue flash
+  '#162660', // royal navy
+  '#2A3F8F', // mid navy
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 ];
 
 /**
@@ -62,6 +69,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   staticColor: {
+<<<<<<< HEAD
     color: '#10367D',
+=======
+    color: '#162660',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   },
 });

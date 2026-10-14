@@ -14,8 +14,13 @@ import { Link, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BusyButton from '@/components/BusyButton';
+<<<<<<< HEAD
 import Header from '@/components/Header';
 import ScreenTransition from '@/components/ScreenTransition';
+=======
+import FadeInView from '@/components/FadeInView';
+import Header from '@/components/Header';
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
 import { signIn } from '@/lib/campusqr/auth';
@@ -69,7 +74,10 @@ export default function CampusLoginScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+<<<<<<< HEAD
       <ScreenTransition style={styles.flex}>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -82,10 +90,17 @@ export default function CampusLoginScreen() {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.headerContainer}>
+<<<<<<< HEAD
               <Header title="School Attendance System" animated={false} />
             </View>
 
             <View style={styles.fadeBody}>
+=======
+              <Header title="School Attendance System" />
+            </View>
+
+            <FadeInView delay={80} style={styles.fadeBody}>
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>
               Sign in to your account
@@ -131,11 +146,18 @@ export default function CampusLoginScreen() {
             <Link href="/campus/register" style={styles.link}>
               Don&apos;t have an account? Sign Up
             </Link>
+<<<<<<< HEAD
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
       </ScreenTransition>
+=======
+            </FadeInView>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     </View>
   );
 }
@@ -145,7 +167,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+<<<<<<< HEAD
   flex: { flex: 1 },
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   keyboardView: {
     flex: 1,
   },

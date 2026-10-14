@@ -10,9 +10,15 @@ type Props = {
 };
 
 /** Gradient logo mark + app title (spec B2 brand gradient + §4 motion). */
+<<<<<<< HEAD
 export default function Header({ title, subtitle, animated = true }: Props & { animated?: boolean }) {
   return (
     <FadeInView style={styles.container} animated={animated}>
+=======
+export default function Header({ title, subtitle }: Props) {
+  return (
+    <FadeInView style={styles.container}>
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <View style={styles.logoWrap}>
         <AnimatedLogo size={72} iconSize={36} />
       </View>
@@ -33,7 +39,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
+<<<<<<< HEAD
     color: '#10367D',
+=======
+    color: '#162660',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     textAlign: 'center',
     paddingHorizontal: 16,
   },

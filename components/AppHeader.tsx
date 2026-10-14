@@ -25,7 +25,11 @@ export default function AppHeader() {
 
 const styles = StyleSheet.create({
   bar: {
+<<<<<<< HEAD
     backgroundColor: '#10367D',
+=======
+    backgroundColor: '#162660',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.10)',
   },
@@ -46,7 +50,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(208, 230, 253, 0.45)',
     marginRight: 10,
+<<<<<<< HEAD
     shadowColor: '#10367D',
+=======
+    shadowColor: '#162660',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.5,
     shadowRadius: 10,

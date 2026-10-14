@@ -50,6 +50,7 @@ export async function signUp(
     password,
     options: { data: metadata },
   });
+<<<<<<< HEAD
   // Intentionally do NOT persist the sign-up session: the flow always ends
   // at Log In (register screen redirects there), so clear any auto-created
   // session to keep the campus auth guard from bouncing straight inside.
@@ -64,6 +65,10 @@ export async function signUp(
       await supabase.auth.signOut().catch(() => {});
     }
     setAuth(null);
+=======
+  if (!error && data.session) {
+    setAuth(data.session);
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   }
   return { data, error };
 }

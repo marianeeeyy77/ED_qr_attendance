@@ -15,7 +15,10 @@ import BusyButton from '@/components/BusyButton';
 import DateTimeField from '@/components/DateTimeField';
 import Dropdown, { type DropdownOption } from '@/components/Dropdown';
 import LockedView from '@/components/LockedView';
+<<<<<<< HEAD
 import ScreenTransition from '@/components/ScreenTransition';
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
@@ -121,7 +124,10 @@ export default function CampusEventFormScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+<<<<<<< HEAD
       <ScreenTransition style={styles.flex}>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <Text style={styles.title}>{editingId ? 'Edit Event' : 'Create Event'}</Text>
@@ -152,7 +158,10 @@ export default function CampusEventFormScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+<<<<<<< HEAD
       </ScreenTransition>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     </View>
   );
 }
@@ -161,11 +170,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
+<<<<<<< HEAD
   title: { fontSize: 22, fontWeight: '700', color: '#10367D', marginBottom: 12, textAlign: 'center' },
   label: { fontSize: 14, fontWeight: '600', color: '#10367D', marginBottom: 6, marginTop: 10 },
   input: {
     backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)',
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: '#10367D',
+=======
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginBottom: 12, textAlign: 'center' },
+  label: { fontSize: 14, fontWeight: '600', color: '#162660', marginBottom: 6, marginTop: 10 },
+  input: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: '#162660',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   },
   multiline: { minHeight: 88, textAlignVertical: 'top' },
   hint: { fontSize: 13, color: '#4A5878', marginTop: 8, textAlign: 'center' },

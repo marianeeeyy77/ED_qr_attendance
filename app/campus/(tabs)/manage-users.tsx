@@ -18,7 +18,10 @@ import Dropdown from '@/components/Dropdown';
 import EducationFields from '@/components/EducationFields';
 import EmptyState from '@/components/EmptyState';
 import LockedView from '@/components/LockedView';
+<<<<<<< HEAD
 import ScreenTransition from '@/components/ScreenTransition';
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { useToast } from '@/components/CampusToast';
 import { COLORS, SPACING, RADIUS, BTN } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
@@ -112,7 +115,11 @@ export default function ManageUsersScreen() {
   });
 
   const roleBadgeColor = (r: string) =>
+<<<<<<< HEAD
     r === 'student' ? '#10367D' : r === 'teacher' ? '#10B981' : '#F59E0B';
+=======
+    r === 'student' ? '#162660' : r === 'teacher' ? '#10B981' : '#F59E0B';
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
   const openEdit = (target: Profile) => {
     setEdit({
@@ -245,7 +252,10 @@ export default function ManageUsersScreen() {
 
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
       <ScreenTransition style={styles.flex}>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <Text style={styles.title}>Manage Users</Text>
       <View style={styles.searchWrap}>
         <Ionicons name="search-outline" size={18} color="#4A5878" />
@@ -361,13 +371,17 @@ export default function ManageUsersScreen() {
           </View>
         </View>
       </Modal>
+<<<<<<< HEAD
       </ScreenTransition>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+<<<<<<< HEAD
   flex: { flex: 1 },
   center: { flex: 1, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', gap: 10 },
   hint: { fontSize: 14, color: '#4A5878' },
@@ -383,6 +397,22 @@ const styles = StyleSheet.create({
   card: { backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)', padding: 14 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: '#10367D', flex: 1 },
+=======
+  center: { flex: 1, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', gap: 10 },
+  hint: { fontSize: 14, color: '#4A5878' },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginHorizontal: 16, marginBottom: 12, textAlign: 'center', paddingTop: 12 },
+  searchWrap: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginBottom: 8,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 12, minHeight: 48,
+  },
+  search: { flex: 1, fontSize: 15, color: '#162660', minHeight: 44 },
+  pillRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 10 },
+  list: { paddingHorizontal: 16, paddingTop: SPACING.listTop, paddingBottom: 40, gap: SPACING.cardGap },
+  card: { backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 14 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: '#162660', flex: 1 },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   roleBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, borderWidth: 1 },
   roleText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
   meta: { fontSize: 13, color: '#4A5878', marginTop: 2 },
@@ -392,34 +422,62 @@ const styles = StyleSheet.create({
   inactive: { color: '#EF4444', fontWeight: '600' },
   chip: {
     minHeight: 40, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 999,
+<<<<<<< HEAD
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)', backgroundColor: 'rgba(235, 235, 235, 0.88)',
   },
   chipActive: { backgroundColor: '#10367D', borderColor: '#10367D' },
+=======
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', backgroundColor: 'rgba(255, 253, 247, 0.88)',
+  },
+  chipActive: { backgroundColor: '#162660', borderColor: '#162660' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   chipText: { fontSize: 13, fontWeight: '600', color: '#4A5878', textTransform: 'capitalize' },
   chipTextActive: { color: '#FFFFFF' },
   actions: { flexDirection: 'row', marginTop: 10, gap: SPACING.buttonGap },
   actionButton: { flex: 1, minHeight: BTN.secondary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8, gap: 5, borderRadius: RADIUS.button },
+<<<<<<< HEAD
   editBtn: { backgroundColor: '#10367D' },
+=======
+  editBtn: { backgroundColor: '#162660' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   deactBtn: { backgroundColor: 'rgba(245,158,11,0.85)' },
   delBtn: { backgroundColor: 'rgba(239,68,68,0.85)' },
   actionBtnText: { color: '#FFFFFF' },
   backdrop: { flex: 1, backgroundColor: COLORS.scrim, justifyContent: 'center', paddingHorizontal: 20 },
   sheet: {
+<<<<<<< HEAD
     backgroundColor: '#F4F4F4', borderRadius: 20, maxHeight: '88%',
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)',
+=======
+    backgroundColor: '#FFFBF2', borderRadius: 20, maxHeight: '88%',
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     shadowColor: COLORS.shadow, shadowOpacity: 0.5, shadowRadius: 24,
     shadowOffset: { width: 0, height: 12 }, elevation: 12,
   },
   sheetScroll: { padding: 18, paddingBottom: 28 },
+<<<<<<< HEAD
   sheetTitle: { fontSize: 20, fontWeight: '700', color: '#10367D', marginBottom: 8 },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: '#204C9E', marginTop: 12, marginBottom: 4 },
   label: { fontSize: 14, fontWeight: '600', color: '#10367D', marginBottom: 6, marginTop: 8 },
   input: {
     backgroundColor: 'rgba(255, 255, 255, 0.7)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)',
     paddingHorizontal: 14, paddingVertical: 12, minHeight: 48, fontSize: 16, color: '#10367D',
+=======
+  sheetTitle: { fontSize: 20, fontWeight: '700', color: '#162660', marginBottom: 8 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#2A3F8F', marginTop: 12, marginBottom: 4 },
+  label: { fontSize: 14, fontWeight: '600', color: '#162660', marginBottom: 6, marginTop: 8 },
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.7)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 14, paddingVertical: 12, minHeight: 48, fontSize: 16, color: '#162660',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   },
   readonly: { opacity: 0.7 },
   error: { fontSize: 14, color: COLORS.danger, textAlign: 'center', marginTop: 10 },
   closeButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+<<<<<<< HEAD
   closeText: { fontSize: 15, fontWeight: '600', color: '#10367D' },
+=======
+  closeText: { fontSize: 15, fontWeight: '600', color: '#162660' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 });

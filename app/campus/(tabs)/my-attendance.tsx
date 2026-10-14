@@ -5,7 +5,10 @@ import { useFocusEffect, useRouter } from 'expo-router';
 
 import StatusPill, { attendanceStatusTone } from '@/components/StatusPill';
 import AnimatedPressable from '@/components/AnimatedPressable';
+<<<<<<< HEAD
 import ScreenTransition from '@/components/ScreenTransition';
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
@@ -88,7 +91,10 @@ export default function MyAttendanceScreen() {
 
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
       <ScreenTransition style={styles.flex}>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>My Attendance</Text>
         <View style={styles.statsGrid}>
@@ -114,7 +120,11 @@ export default function MyAttendanceScreen() {
         ) : records.length === 0 ? (
           <View style={styles.emptyCard}>
             <View style={styles.emptyIcon}>
+<<<<<<< HEAD
               <Ionicons name="checkmark-circle-outline" size={44} color="#5098C3" />
+=======
+              <Ionicons name="checkmark-circle-outline" size={44} color="#2A5BD7" />
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
             </View>
             <Text style={styles.emptyTitle}>You have no attendance records yet</Text>
             <Text style={styles.emptySub}>Scan an event QR code to record your first check-in</Text>
@@ -183,7 +193,11 @@ export default function MyAttendanceScreen() {
                     accessibilityRole="button"
                     accessibilityLabel="Appeal this record"
                   >
+<<<<<<< HEAD
                     <Ionicons name="mail-outline" size={16} color="#10367D" />
+=======
+                    <Ionicons name="mail-outline" size={16} color="#162660" />
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
                     <Text style={styles.appealText}>Appeal</Text>
                   </AnimatedPressable>
                 )
@@ -192,13 +206,17 @@ export default function MyAttendanceScreen() {
           ))
         )}
       </ScrollView>
+<<<<<<< HEAD
       </ScreenTransition>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+<<<<<<< HEAD
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
   title: { fontSize: 22, fontWeight: '700', color: '#10367D', marginBottom: 12, textAlign: 'center', paddingTop: 12 },
@@ -207,13 +225,27 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1, backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 12,
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)',
+=======
+  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginBottom: 12, textAlign: 'center', paddingTop: 12 },
+  hint: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', paddingVertical: 24 },
+  statsGrid: { flexDirection: 'row', gap: 8, marginBottom: 14 },
+  statCard: {
+    flex: 1, backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     paddingVertical: 12, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', gap: 4,
   },
   statLabel: { fontSize: 11, color: '#4A5878', textAlign: 'center' },
   statValue: { fontSize: 20, fontWeight: '700', textAlign: 'center' },
   emptyCard: {
+<<<<<<< HEAD
     backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 16,
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)',
+=======
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     padding: 28, alignItems: 'center',
   },
   emptyIcon: {
@@ -221,6 +253,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(56,189,248,0.12)', borderWidth: 1, borderColor: 'rgba(56,189,248,0.35)',
     marginBottom: 14,
   },
+<<<<<<< HEAD
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#10367D', textAlign: 'center', marginBottom: 6 },
   emptySub: { fontSize: 13, color: '#4A5878', textAlign: 'center', lineHeight: 19 },
   card: {
@@ -236,6 +269,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(16, 54, 125, 0.06)',
   },
   appealText: { fontSize: 14, fontWeight: '700', color: '#10367D' },
+=======
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#162660', textAlign: 'center', marginBottom: 6 },
+  emptySub: { fontSize: 13, color: '#4A5878', textAlign: 'center', lineHeight: 19 },
+  card: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    padding: 16, marginBottom: 10,
+  },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 4 },
+  eventName: { fontSize: 16, fontWeight: '700', color: '#162660', flex: 1 },
+  meta: { fontSize: 13, color: '#4A5878' },
+  appealBtn: {
+    marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    minHeight: 44, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.4)',
+    backgroundColor: 'rgba(22, 38, 96, 0.06)',
+  },
+  appealText: { fontSize: 14, fontWeight: '700', color: '#162660' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   appealState: {
     marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     minHeight: 44, borderRadius: 12, borderWidth: 1, paddingHorizontal: 12,

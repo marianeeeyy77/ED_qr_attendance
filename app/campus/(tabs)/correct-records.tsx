@@ -5,7 +5,10 @@ import { useFocusEffect } from 'expo-router';
 import AttendanceRecords from '@/components/AttendanceRecords';
 import Dropdown from '@/components/Dropdown';
 import LockedView from '@/components/LockedView';
+<<<<<<< HEAD
 import ScreenTransition from '@/components/ScreenTransition';
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
@@ -75,7 +78,10 @@ export default function CorrectRecordsScreen() {
 
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
       <ScreenTransition style={styles.flex}>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Correct Reports</Text>
         <View style={styles.banner}>
@@ -102,16 +108,24 @@ export default function CorrectRecordsScreen() {
           </>
         )}
       </ScrollView>
+<<<<<<< HEAD
       </ScreenTransition>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+<<<<<<< HEAD
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
   title: { fontSize: 22, fontWeight: '700', color: '#10367D', marginBottom: 12, textAlign: 'center' },
+=======
+  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginBottom: 12, textAlign: 'center' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   hint: { fontSize: 14, color: '#4A5878', textAlign: 'center', paddingVertical: 24 },
   banner: {
     backgroundColor: 'rgba(217, 119, 6, 0.14)', borderWidth: 1, borderColor: 'rgba(217, 119, 6, 0.4)',
@@ -119,8 +133,15 @@ const styles = StyleSheet.create({
   },
   bannerText: { color: '#92400E', fontWeight: '700', fontSize: 13 },
   selectorCard: {
+<<<<<<< HEAD
     backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 12,
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)', padding: 14, marginBottom: 10,
   },
   selectorTitle: { fontSize: 16, fontWeight: '700', color: '#10367D' },
+=======
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 14, marginBottom: 10,
+  },
+  selectorTitle: { fontSize: 16, fontWeight: '700', color: '#162660' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 });

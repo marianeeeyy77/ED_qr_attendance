@@ -158,7 +158,11 @@ export default function AnimatedLogo({
 
 const styles = StyleSheet.create({
   glow: {
+<<<<<<< HEAD
     shadowColor: '#10367D',
+=======
+    shadowColor: '#162660',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.55,
     shadowRadius: 18,

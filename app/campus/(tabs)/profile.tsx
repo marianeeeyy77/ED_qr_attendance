@@ -11,7 +11,10 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import AnimatedPressable from '@/components/AnimatedPressable';
+<<<<<<< HEAD
 import ScreenTransition from '@/components/ScreenTransition';
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
@@ -215,7 +218,10 @@ export default function CampusProfileScreen() {
     }
     return (
       <View style={styles.container}>
+<<<<<<< HEAD
         <ScreenTransition style={styles.flex}>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.profileHeader}>
             <View style={styles.avatar}>
@@ -231,7 +237,11 @@ export default function CampusProfileScreen() {
 
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
+<<<<<<< HEAD
               <Text style={[styles.statValue, { color: '#204C9E' }]}>{profile ? ROLE_LABEL[profile.role] : '...'}</Text>
+=======
+              <Text style={[styles.statValue, { color: '#2A3F8F' }]}>{profile ? ROLE_LABEL[profile.role] : '...'}</Text>
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
               <Text style={styles.statLabel}>Role</Text>
             </View>
             {isStudent && (
@@ -287,21 +297,35 @@ export default function CampusProfileScreen() {
 
           {isStudent && (
             <View style={styles.infoCard}>
+<<<<<<< HEAD
               <Text style={[styles.sectionTitle, styles.sectionTitleCenter, styles.sectionTitleLg]}>Academic Information</Text>
+=======
+              <Text style={[styles.sectionTitle, styles.sectionTitleCenter]}>Academic Information</Text>
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
               <View style={styles.academicRow}>
                 <View style={styles.academicCell}>
                   {leftColumn.map((field) => (
                     <View key={field.label}>
+<<<<<<< HEAD
                       <Text style={[styles.miniLabel, styles.centerText]}>{field.label}</Text>
                       <Text style={[styles.miniValue, styles.centerText]}>{field.value}</Text>
+=======
+                      <Text style={styles.miniLabel}>{field.label}</Text>
+                      <Text style={styles.miniValue}>{field.value}</Text>
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
                     </View>
                   ))}
                 </View>
                 <View style={styles.academicCell}>
                   {rightColumn.map((field) => (
                     <View key={field.label}>
+<<<<<<< HEAD
                       <Text style={[styles.miniLabel, styles.centerText]}>{field.label}</Text>
                       <Text style={[styles.miniValue, styles.centerText]}>{field.value}</Text>
+=======
+                      <Text style={styles.miniLabel}>{field.label}</Text>
+                      <Text style={styles.miniValue}>{field.value}</Text>
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
                     </View>
                   ))}
                 </View>
@@ -321,7 +345,10 @@ export default function CampusProfileScreen() {
             <Text style={styles.signOutGlassText}>{signingOut ? 'Signing out...' : 'Sign Out'}</Text>
           </AnimatedPressable>
         </ScrollView>
+<<<<<<< HEAD
         </ScreenTransition>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       </View>
     );
   }
@@ -331,12 +358,17 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
+<<<<<<< HEAD
   title: { fontSize: 22, fontWeight: '700', color: '#10367D', marginBottom: 12, textAlign: 'center' },
+=======
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginBottom: 12, textAlign: 'center' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   loadingBox: { alignItems: 'center', paddingVertical: 48, gap: 12 },
   hint: { fontSize: 14, color: COLORS.textSecondary },
   profileHeader: { alignItems: 'center', marginBottom: 14 },
   avatar: {
     width: 84, height: 84, borderRadius: 42,
+<<<<<<< HEAD
     backgroundColor: 'rgba(16, 54, 125, 0.1)', borderWidth: 1,
     borderColor: 'rgba(16, 54, 125, 0.28)',
     alignItems: 'center', justifyContent: 'center', marginBottom: 10,
@@ -381,11 +413,53 @@ const styles = StyleSheet.create({
   },
   savePhone: {
     backgroundColor: '#10367D', borderRadius: 12, paddingVertical: 12,
+=======
+    backgroundColor: 'rgba(22, 38, 96, 0.1)', borderWidth: 1,
+    borderColor: 'rgba(22, 38, 96, 0.28)',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 10,
+  },
+  avatarText: { fontSize: 28, fontWeight: '700', color: '#162660' },
+  profileName: { fontSize: 20, fontWeight: '700', color: '#162660', textAlign: 'center' },
+  idPill: {
+    marginTop: 8, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999,
+    backgroundColor: 'rgba(22, 38, 96, 0.08)', borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.16)',
+  },
+  idPillText: { fontSize: 12, fontWeight: '600', color: '#162660' },
+  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  statCard: {
+    flex: 1, backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingVertical: 12, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', gap: 4,
+  },
+  statLabel: { fontSize: 11, color: '#4A5878', textAlign: 'center' },
+  statValue: { fontSize: 13, fontWeight: '700', color: '#162660', textAlign: 'center' },
+  infoCard: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    padding: 16, marginBottom: 12,
+  },
+  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#162660', marginBottom: 10 },
+  sectionTitleCenter: { textAlign: 'center' },
+  miniLabel: { fontSize: 12, fontWeight: '600', color: '#4A5878', marginTop: 8 },
+  miniValue: { fontSize: 15, color: '#162660', marginTop: 2 },
+  /** Two-column academic grid: label over value, cells share the width. */
+  academicRow: { flexDirection: 'row', gap: 12 },
+  academicCell: { flex: 1 },
+  phoneInput: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 14, paddingVertical: 12, marginTop: 6, minHeight: 48,
+    fontSize: 15, color: '#162660',
+  },
+  savePhone: {
+    backgroundColor: '#162660', borderRadius: 12, paddingVertical: 12,
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     alignItems: 'center', justifyContent: 'center', marginTop: 10, minHeight: 44,
   },
   savePhoneDisabled: { opacity: 0.6 },
   savePhoneText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   adminNote: { fontSize: 12, color: '#4A5878', fontStyle: 'italic', lineHeight: 17, marginTop: 10 },
+<<<<<<< HEAD
   label: { fontSize: 14, fontWeight: '600', color: '#10367D', marginBottom: 6, marginTop: 10 },
   input: {
     backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 12,
@@ -396,6 +470,18 @@ const styles = StyleSheet.create({
   readonlyBox: {
     backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 12,
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)',
+=======
+  label: { fontSize: 14, fontWeight: '600', color: '#162660', marginBottom: 6, marginTop: 10 },
+  input: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 14, paddingVertical: 12, marginHorizontal: 0,
+    fontSize: 16, color: '#162660',
+  },
+  readonlyBox: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     paddingHorizontal: 14, paddingVertical: 12, opacity: 0.9,
   },
   readonlyText: { fontSize: 16, color: '#3A4A6B' },

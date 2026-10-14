@@ -15,16 +15,24 @@ type Props = {
 const WEB_BG_STYLE = {
   ...StyleSheet.absoluteFillObject,
   backgroundImage: [
+<<<<<<< HEAD
     // sky-blue aurora, upper area
     'radial-gradient(60% 45% at 22% 12%, rgba(116,180,217,0.55) 0%, rgba(116,180,217,0) 70%)',
     // sky-blue glow, lower-center
     'radial-gradient(70% 50% at 70% 88%, rgba(116,180,217,0.45) 0%, rgba(116,180,217,0) 70%)',
+=======
+    // powder-blue aurora, upper area
+    'radial-gradient(60% 45% at 22% 12%, rgba(208,230,253,0.55) 0%, rgba(208,230,253,0) 70%)',
+    // warm tan glow, lower-center
+    'radial-gradient(70% 50% at 70% 88%, rgba(227,205,168,0.45) 0%, rgba(227,205,168,0) 70%)',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     // base spec radial (last = bottom layer)
     WEB_BACKGROUND_CSS,
   ].join(', '),
 } as unknown as StyleProp<ViewStyle>;
 
 /**
+<<<<<<< HEAD
  * Global 3D background (Light Grey theme + depth polish).
  *
  * Web uses the spec's exact CSS `radial-gradient` with a sky-blue glow
@@ -32,6 +40,15 @@ const WEB_BG_STYLE = {
  * stops → a sky-blue aurora (upper-left) → a soft sky-blue floor glow (bottom)
  * → an edge vignette. Together these frame the content as floating light-grey
  * glass while staying strictly within the Light Grey/Royal Blue/Sky Blue theme.
+=======
+ * Global 3D background (warm Bone theme + depth polish).
+ *
+ * Web uses the spec's exact CSS `radial-gradient` with a powder-blue glow
+ * and a warm tan glow layered on top. Native stacks: base fill → the 4 warm
+ * stops → a powder-blue aurora (upper-left) → a soft tan floor glow (bottom)
+ * → an edge vignette. Together these frame the content as floating cream
+ * glass while staying strictly within the Bone/Navy/Powder-Blue theme.
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
  */
 export default function AppBackground({ children }: Props) {
   return (
@@ -42,9 +59,15 @@ export default function AppBackground({ children }: Props) {
       >
         {Platform.OS !== 'web' && (
           <>
+<<<<<<< HEAD
             {/* Base fill = lightest grey stop. */}
             <View style={[StyleSheet.absoluteFill, { backgroundColor: COLORS.bgBase }]} />
             {/* The four grey stops, lightest at the top (≈ 50% 30%). */}
+=======
+            {/* Base fill = lightest warm stop. */}
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: COLORS.bgBase }]} />
+            {/* The four warm stops, lightest at the top (≈ 50% 30%). */}
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
             <Gradient
               colors={GRADIENTS.background}
               locations={[0, 0.45, 0.75, 1]}
@@ -52,28 +75,46 @@ export default function AppBackground({ children }: Props) {
               end={{ x: 0.5, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
+<<<<<<< HEAD
             {/* Sky-blue glow centered near the top (the ellipse core). */}
             <Gradient
               colors={['rgba(116,180,217,0.55)', 'rgba(116,180,217,0)']}
+=======
+            {/* Powder-blue glow centered near the top (the ellipse core). */}
+            <Gradient
+              colors={['rgba(208,230,253,0.55)', 'rgba(208,230,253,0)']}
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
               start={{ x: 0.5, y: 0.02 }}
               end={{ x: 0.5, y: 0.6 }}
               style={StyleSheet.absoluteFill}
             />
+<<<<<<< HEAD
             {/* Sky-blue aurora, upper-left — a second, off-center light source. */}
+=======
+            {/* Powder-blue aurora, upper-left — a second, off-center light source. */}
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
             <Gradient
               colors={DEPTH.auroraBlue}
               start={{ x: 0.05, y: 0.05 }}
               end={{ x: 0.55, y: 0.55 }}
               style={StyleSheet.absoluteFill}
             />
+<<<<<<< HEAD
             {/* Soft sky-blue floor glow toward the bottom to ground the scene. */}
+=======
+            {/* Soft warm tan floor glow toward the bottom to ground the scene. */}
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
             <Gradient
               colors={DEPTH.auroraFloor}
               start={{ x: 0.5, y: 1 }}
               end={{ x: 0.5, y: 0.62 }}
               style={StyleSheet.absoluteFill}
             />
+<<<<<<< HEAD
             {/* Edge vignette focuses the center; navy shadow tone. */}
+=======
+            {/* Edge vignette focuses the center; warm shadow tone. */}
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
             <Gradient
               colors={DEPTH.vignette}
               locations={[0.55, 1]}

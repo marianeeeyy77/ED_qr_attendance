@@ -104,7 +104,11 @@ export default function AttendanceRecords({ records, loading, canEdit = false, o
   };
 
   const statusColor = (s: string) =>
+<<<<<<< HEAD
     s === 'present' ? '#10B981' : s === 'late' ? '#F59E0B' : s === 'absent' ? '#EF4444' : s === 'excused' ? '#5098C3' : '#4A5878';
+=======
+    s === 'present' ? '#10B981' : s === 'late' ? '#F59E0B' : s === 'absent' ? '#EF4444' : s === 'excused' ? '#2A5BD7' : '#4A5878';
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
   if (loading) {
     return <Text style={styles.hint}>Loading records...</Text>;
@@ -247,6 +251,7 @@ export default function AttendanceRecords({ records, loading, canEdit = false, o
 
 const styles = StyleSheet.create({
   hint: { fontSize: 13, color: '#4A5878', textAlign: 'center', paddingVertical: 16 },
+<<<<<<< HEAD
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   filterRowSingle: { flexDirection: 'row', gap: 8, marginBottom: 12, paddingRight: 8 },
   chip: {
@@ -254,10 +259,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(235, 235, 235, 0.88)', borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)',
   },
   chipActive: { backgroundColor: '#10367D', borderColor: '#10367D' },
+=======
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+  filterRowSingle: { flexDirection: 'row', gap: 8, marginBottom: 10, paddingRight: 8 },
+  chip: {
+    minHeight: 40, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 999,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+  },
+  chipActive: { backgroundColor: '#162660', borderColor: '#162660' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   chipText: { fontSize: 13, fontWeight: '600', color: '#4A5878', textTransform: 'capitalize' },
   chipTextActive: { color: '#FFFFFF' },
   searchWrap: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
+<<<<<<< HEAD
     backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 12,
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)',
     paddingHorizontal: 12, minHeight: 48, marginBottom: 12,
@@ -276,6 +291,26 @@ const styles = StyleSheet.create({
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 4 },
   name: { fontSize: 16, fontWeight: '700', color: '#10367D', flex: 1 },
+=======
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 12, minHeight: 48, marginBottom: 12,
+  },
+  searchInput: { flex: 1, fontSize: 15, color: '#162660', minHeight: 44 },
+  emptyCard: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    padding: 28, alignItems: 'center', gap: 6,
+  },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#162660', textAlign: 'center' },
+  emptySub: { fontSize: 13, color: '#4A5878', textAlign: 'center' },
+  card: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    padding: 16, marginBottom: 10,
+  },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 4 },
+  name: { fontSize: 16, fontWeight: '700', color: '#162660', flex: 1 },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   meta: { fontSize: 13, color: '#4A5878', marginBottom: 2 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, borderWidth: 1 },
   statusText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
@@ -287,6 +322,7 @@ const styles = StyleSheet.create({
   overrideRow: { flexDirection: 'row', gap: SPACING.buttonGap, flexWrap: 'wrap' },
   overrideBtn: {
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12,
+<<<<<<< HEAD
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.16)', backgroundColor: 'rgba(235, 235, 235, 0.88)',
   },
   overrideText: { fontSize: 13, fontWeight: '700' },
@@ -296,5 +332,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#10367D',
   },
   saveBtn: { backgroundColor: '#10367D', borderRadius: 12, paddingVertical: 12, alignItems: 'center', minHeight: 44, justifyContent: 'center' },
+=======
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.16)', backgroundColor: 'rgba(255, 253, 247, 0.88)',
+  },
+  overrideText: { fontSize: 13, fontWeight: '700' },
+  reasonInput: {
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#162660',
+  },
+  saveBtn: { backgroundColor: '#162660', borderRadius: 12, paddingVertical: 12, alignItems: 'center', minHeight: 44, justifyContent: 'center' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   saveText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
 });

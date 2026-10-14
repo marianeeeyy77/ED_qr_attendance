@@ -7,7 +7,11 @@ paste, and click **Run**. It is safe to re-run (idempotent).
 It creates: the enums, the `profiles` / `events` / `attendance` / `appeals` / `audit_logs`
 tables, the helper functions, the `check_in()` RPC, the admin RPCs, all RLS
 policies, column grants, the signup trigger, the event audit trigger, and the
+<<<<<<< HEAD
 Realtime publication. After setup, **STEP 1b** widens teachers to full event, appeal + attendance access.
+=======
+Realtime publication — everything the app needs.
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
 ---
 
@@ -500,9 +504,15 @@ create trigger on_auth_user_created
 drop policy if exists events_select on public.events;
 create policy events_select on public.events
   for select using (
+<<<<<<< HEAD
     -- Staff (teacher + admin) see every event, drafts included;
     -- students see open + closed only (their status flips live).
     status in ('open', 'closed') or created_by = auth.uid() or public.is_staff()
+=======
+    -- Students see open + closed events (live open/closed status);
+    -- drafts stay staff-only.
+    status in ('open', 'closed') or created_by = auth.uid() or public.is_admin()
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   );
 
 drop policy if exists events_insert on public.events;
@@ -511,6 +521,7 @@ create policy events_insert on public.events
 
 drop policy if exists events_update on public.events;
 create policy events_update on public.events
+<<<<<<< HEAD
   -- Staff (teacher + admin) may update ANY event.
   for update using (public.is_staff())
   with check (public.is_staff());
@@ -519,18 +530,35 @@ drop policy if exists events_delete on public.events;
 create policy events_delete on public.events
   -- Staff (teacher + admin) may delete ANY event.
   for delete using (public.is_staff());
+=======
+  for update using (created_by = auth.uid() or public.is_admin())
+  with check (created_by = auth.uid() or public.is_admin());
+
+drop policy if exists events_delete on public.events;
+create policy events_delete on public.events
+  for delete using (created_by = auth.uid() or public.is_admin());
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
 -- ==================== attendance ====================
 drop policy if exists attendance_select on public.attendance;
 create policy attendance_select on public.attendance
+<<<<<<< HEAD
   -- Students see their own rows; staff (teacher + admin) monitor and
   -- correct every event's attendance (the Monitor tab opens any event).
   for select using (
     student_id = auth.uid() or public.is_staff()
+=======
+  for select using (
+    student_id = auth.uid()
+    or public.is_admin()
+    or exists (select 1 from public.events e
+               where e.id = attendance.event_id and e.created_by = auth.uid())
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   );
 
 drop policy if exists attendance_update on public.attendance;
 create policy attendance_update on public.attendance
+<<<<<<< HEAD
   -- Staff (teacher + admin) may correct any row: per-row edits on
   -- Monitor, and approving an appeal flips the absent row to excused.
   for update using (public.is_staff())
@@ -540,6 +568,25 @@ drop policy if exists attendance_delete on public.attendance;
 create policy attendance_delete on public.attendance
   -- Staff (teacher + admin) may remove any row (Monitor delete).
   for delete using (public.is_staff());
+=======
+  for update using (
+    public.is_admin()
+    or exists (select 1 from public.events e
+               where e.id = attendance.event_id and e.created_by = auth.uid())
+  ) with check (
+    public.is_admin()
+    or exists (select 1 from public.events e
+               where e.id = attendance.event_id and e.created_by = auth.uid())
+  );
+
+drop policy if exists attendance_delete on public.attendance;
+create policy attendance_delete on public.attendance
+  for delete using (
+    public.is_admin()
+    or exists (select 1 from public.events e
+               where e.id = attendance.event_id and e.created_by = auth.uid())
+  );
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 -- No INSERT policy on purpose: check-ins only via check_in() RPC.
 
 -- ==================== audit_logs ====================
@@ -611,9 +658,16 @@ alter table public.appeals enable row level security;
 drop policy if exists appeals_select on public.appeals;
 create policy appeals_select on public.appeals
   for select using (
+<<<<<<< HEAD
     -- A student sees their own appeals; staff (teacher + admin) see ALL.
     student_id = auth.uid()
     or public.is_staff()
+=======
+    student_id = auth.uid()
+    or public.is_admin()
+    or exists (select 1 from public.events e
+               where e.id = appeals.event_id and e.created_by = auth.uid())
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   );
 
 drop policy if exists appeals_insert on public.appeals;
@@ -747,6 +801,7 @@ $$;
 
 ---
 
+<<<<<<< HEAD
 ## STEP 1b — Give teachers full event, appeal + attendance access (run this SQL)
 
 Use this when your database was **already set up** with STEP 1 and you now
@@ -822,6 +877,8 @@ select tablename, policyname, cmd, qual
 
 ---
 
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 ## STEP 2 — Make your first Admin (run once)
 
 The SQL Editor runs as the table owner, so this is allowed. Use the email of
@@ -857,9 +914,15 @@ Then restart the dev server: `npx expo start -c`.
 | App concept | Table / column / function |
 |---|---|
 | User / Profile | `profiles` (id, email, full_name, role, is_active, phone, student_no, educational fields, created_at) |
+<<<<<<< HEAD
 | Event | `events` (id, name, description, venue, start_datetime, end_datetime, status, qr_token, created_by) — staff (teacher + admin) manage every event |
 | Attendance | `attendance` (id, event_id, student_id, status, method, recorded_at, recorded_by; unique per event+student) - staff (teacher + admin) view/correct/delete any event's rows; students see their own; inserts only via check_in() RPC |
 | Appeal | `appeals` (student_id, event_id, attendance_id, reason, status, feedback; unique per student+event) - students appeal only their own `absent` records — staff (teacher + admin) review every appeal |
+=======
+| Event | `events` (id, name, description, venue, start_datetime, end_datetime, status, qr_token, created_by) |
+| Attendance | `attendance` (id, event_id, student_id, status, method, recorded_at, recorded_by; unique per event+student) |
+| Appeal | `appeals` (student_id, event_id, attendance_id, reason, status, feedback; unique per student+event) - students appeal only their own `absent` records |
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 | Absent marking | `trg_mark_absent_on_event_close` (insert + close) + one-shot backfill — every active student without a row on a closed event is `absent`/`auto`; no scan of a closed event is ever needed (auto rows are removed again if the event reopens) |
 | Check-in | `check_in(p_token text)` RPC → `result` = success / duplicate / closed / invalid / unauthorized |
 | QR rotation | `rotate_qr_token(p_event_id uuid)` RPC → refreshed event row (owner-or-admin; kills screenshots) |

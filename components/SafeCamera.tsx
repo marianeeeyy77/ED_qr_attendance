@@ -97,12 +97,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
+<<<<<<< HEAD
     backgroundColor: 'rgba(235, 235, 235, 0.88)',
     borderWidth: 1,
     borderColor: 'rgba(16, 54, 125, 0.16)',
   },
   text: {
     color: '#10367D',
+=======
+    backgroundColor: 'rgba(255, 253, 247, 0.88)',
+    borderWidth: 1,
+    borderColor: 'rgba(22, 38, 96, 0.16)',
+  },
+  text: {
+    color: '#162660',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     fontSize: 14,
     fontWeight: '600',
   },

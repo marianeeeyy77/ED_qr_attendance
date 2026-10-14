@@ -12,7 +12,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AnimatedPressable from '@/components/AnimatedPressable';
 import QRDisplay from '@/components/QRDisplay';
+<<<<<<< HEAD
 import ScreenTransition from '@/components/ScreenTransition';
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import StatusPill from '@/components/StatusPill';
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
@@ -75,7 +78,10 @@ export default function CampusQrDisplayScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+<<<<<<< HEAD
       <ScreenTransition style={styles.flex}>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]} showsVerticalScrollIndicator={false}>
         {loading ? (
           <View style={styles.center}>
@@ -138,14 +144,20 @@ export default function CampusQrDisplayScreen() {
           </>
         )}
       </ScrollView>
+<<<<<<< HEAD
       </ScreenTransition>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+<<<<<<< HEAD
   flex: { flex: 1 },
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   scroll: { paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8, alignItems: 'center' },
   center: { alignItems: 'center', paddingVertical: 48, gap: 12 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4, width: '100%' },

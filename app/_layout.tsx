@@ -2,7 +2,10 @@ import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import AppBackground from '@/components/AppBackground';
+<<<<<<< HEAD
 import { COLORS } from '@/constants/colors';
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { installHarmlessErrorFilter } from '@/lib/errors';
 
 // Swallow the dev-only "Unable to activate keep awake" rejection from Expo Go
@@ -26,11 +29,15 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             headerShown: false,
+<<<<<<< HEAD
             // Opaque base (matches AppBackground) so fades cross-dissolve
             // without flashing through to a transparent frame.
             contentStyle: { backgroundColor: COLORS.bgBase },
             animation: 'fade',
             animationDuration: 250,
+=======
+            contentStyle: { backgroundColor: 'transparent' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
           }}
         >
           <Stack.Screen name="index" />

@@ -4,8 +4,13 @@ import { refusedMessage, verifyPatch } from './verify';
 
 /**
  * Events data layer (spec section 3).
+<<<<<<< HEAD
  * Students see only open events; staff (teacher + admin) see every row
  * RLS allows.
+=======
+ * Students see only open events, teachers their own, admins all — RLS
+ * enforces this server-side too, but the query mirrors the spec.
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
  */
 
 export type EventInput = {
@@ -46,6 +51,22 @@ export function validateEventTimes(
   return null;
 }
 
+<<<<<<< HEAD
+=======
+/** Lists the ids of every admin (staff can read profiles via RLS). */
+async function listAdminIds(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('role', 'admin');
+  if (error) {
+    console.warn('[campusqr/events] listAdminIds failed:', error.message);
+    return [];
+  }
+  return (data ?? []).map((row) => row.id as string);
+}
+
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 /** Lists the ids of every teacher (staff can read profiles via RLS). */
 async function listTeacherIds(): Promise<string[]> {
   const { data, error } = await supabase
@@ -62,7 +83,14 @@ async function listTeacherIds(): Promise<string[]> {
 /**
  * Lists events visible to the given role (spec listVisibleEvents).
  * - student: open + closed events - their status flips live (RLS same).
+<<<<<<< HEAD
  * - teacher + admin: no extra filter — staff see every row RLS allows.
+=======
+ * - teacher: their OWN events (any status) PLUS admin-created events.
+ *   RLS still restricts which of those rows the teacher may actually read
+ *   (admin events come back only while `open`), so this mirrors the DB.
+ * - admin: no extra filter — sees all rows RLS allows.
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
  */
 export async function listVisibleEvents(
   role: UserRole | null,
@@ -75,8 +103,22 @@ export async function listVisibleEvents(
 
   if (role === 'student') {
     query = query.in('status', ['open', 'closed']);
+<<<<<<< HEAD
   }
   // teacher + admin: no extra filter — staff see every row RLS allows.
+=======
+  } else if (role === 'teacher' && userId) {
+    const adminIds = await listAdminIds();
+    const creatorFilter =
+      adminIds.length > 0
+        ? `created_by.eq.${userId},created_by.in.(${adminIds
+            .map((id) => `"${id}"`)
+            .join(',')})`
+        : `created_by.eq.${userId}`;
+    query = query.or(creatorFilter);
+  }
+  // admin: no extra filter — sees all rows RLS allows.
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
   const { data, error } = await query;
   if (error) {
@@ -203,7 +245,11 @@ export async function setEventStatus(
   return { error: null };
 }
 
+<<<<<<< HEAD
 /** Deletes an event (staff — RLS enforces server-side). */
+=======
+/** Deletes an event (owner/admin — RLS enforces server-side). */
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 export async function deleteEvent(id: string): Promise<{ error: string | null }> {
   const { error } = await supabase.from('events').delete().eq('id', id);
   if (error) return { error: error.message };

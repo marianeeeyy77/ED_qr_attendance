@@ -1,13 +1,21 @@
 import { Tabs } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+<<<<<<< HEAD
 import { StyleSheet, Text, View } from 'react-native';
+=======
+import { StyleSheet, Text } from 'react-native';
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AnimatedPressable from '@/components/AnimatedPressable';
 import AppHeader from '@/components/AppHeader';
 import { useCampusRole } from '@/lib/campusqr/roles';
+<<<<<<< HEAD
 import { usePendingAppealCount } from '@/lib/campusqr/appeals';
 import { COLORS, RADIUS, SLATE } from '@/constants/colors';
+=======
+import { RADIUS, SLATE } from '@/constants/colors';
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
 /**
  * Hides a route from the bar completely. React Navigation v7 wraps every
@@ -22,6 +30,7 @@ const HIDDEN_TAB: { display: 'none' } = { display: 'none' };
 /**
  * Role-based tabs (simplified navigation):
  *   Student → Events · Scan · Attendance · Profile                        (4)
+<<<<<<< HEAD
  *   Teacher → Events · QR · Monitor · Reports · Profile                   (5)
  *   Admin   → Events · Monitor · Correct · Users · Reports · Profile      (6)
  *
@@ -30,6 +39,15 @@ const HIDDEN_TAB: { display: 'none' } = { display: 'none' };
  * Appeal button on an absent row in Attendance history (deep link to the
  * hidden route); staff review the queue from the Monitor tab. Screens a
  * role cannot access are hidden outright (HIDDEN_TAB + a null
+=======
+ *   Teacher → Events · QR · Monitor · Appeals · Reports · Profile         (6)
+ *   Admin   → Events · Monitor · Correct · Users · Appeals · Reports ·
+ *             Profile                                                    (7)
+ *
+ * Students reach Appeals from the Appeal button on an absent row in
+ * Attendance history (deep link), so it stays out of their bar; staff get
+ * a visible queue tab. Screens a role cannot access are hidden outright (HIDDEN_TAB + a null
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
  * button), so only real tabs occupy width and each one gets an equal slot.
  *
  * Button anatomy — the ACTIVE tab highlights the WHOLE button as a filled
@@ -54,12 +72,18 @@ function TabButton({
   tabLabel,
   iconOutline,
   iconFilled,
+<<<<<<< HEAD
   badge,
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 }: any & {
   tabLabel: string;
   iconOutline: keyof typeof Ionicons.glyphMap;
   iconFilled: keyof typeof Ionicons.glyphMap;
+<<<<<<< HEAD
   badge?: number;
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 }) {
   // React Navigation v7 passes `aria-selected`; keep `accessibilityState`
   // as a fallback so the active pill can never silently stop rendering.
@@ -71,6 +95,7 @@ function TabButton({
       style={[styles.tabTouch, focused && styles.tabTouchActive]}
       outerStyle={navStyle}
       accessibilityRole="tab"
+<<<<<<< HEAD
       accessibilityLabel={badge != null && badge > 0 ? tabLabel + ', ' + badge + ' pending appeal' + (badge === 1 ? '' : 's') : tabLabel}
       accessibilityState={{ selected: focused }}
       hitSlop={6}
@@ -83,6 +108,19 @@ function TabButton({
           size={24}
           color={focused ? '#FFFFFF' : SLATE.muted}
         />
+=======
+      accessibilityLabel={tabLabel}
+      accessibilityState={{ selected: focused }}
+      hitSlop={6}
+      pressScale={0.92}
+      glowColor={focused ? SLATE.indigo : '#94A3B8'}
+    >
+      <Ionicons
+        name={focused ? iconFilled : iconOutline}
+        size={24}
+        color={focused ? '#FFFFFF' : SLATE.muted}
+      />
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <Text
         style={[styles.tabLabel, focused && styles.tabLabelActive]}
         numberOfLines={1}
@@ -91,12 +129,15 @@ function TabButton({
       >
         {tabLabel}
       </Text>
+<<<<<<< HEAD
       {badge != null && badge > 0 ? (
         <View style={styles.tabBadge} pointerEvents='none'>
           <Text style={styles.tabBadgeText}>{badge > 99 ? '99+' : String(badge)}</Text>
           </View>
         ) : null}
       </View>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     </AnimatedPressable>
   );
 }
@@ -109,8 +150,11 @@ function TabButton({
 export default function CampusTabsLayout() {
   const { role, loading } = useCampusRole();
   const insets = useSafeAreaInsets();
+<<<<<<< HEAD
   const staffRole = role === 'teacher' || role === 'admin';
   const { count: pendingAppeals } = usePendingAppealCount(staffRole);
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
   if (loading) {
     return null;
@@ -129,8 +173,12 @@ export default function CampusTabsLayout() {
     visible: boolean,
     label: string,
     iconOutline: keyof typeof Ionicons.glyphMap,
+<<<<<<< HEAD
     iconFilled: keyof typeof Ionicons.glyphMap,
     badge: number = 0
+=======
+    iconFilled: keyof typeof Ionicons.glyphMap
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   ) => ({
     tabBarItemStyle: visible ? undefined : HIDDEN_TAB,
     tabBarButton: (props: any) =>
@@ -140,7 +188,10 @@ export default function CampusTabsLayout() {
           tabLabel={label}
           iconOutline={iconOutline}
           iconFilled={iconFilled}
+<<<<<<< HEAD
             badge={badge}
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
         />
       ) : null,
   });
@@ -211,7 +262,11 @@ export default function CampusTabsLayout() {
         name="monitor-attendance"
         options={{
           title: isAdmin ? 'Overall Attendance' : 'Monitor',
+<<<<<<< HEAD
           ...gatedTab(isStaff, 'Monitor', 'people-outline', 'people', pendingAppeals),
+=======
+          ...gatedTab(isStaff, 'Monitor', 'people-outline', 'people'),
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
         }}
       />
       <Tabs.Screen
@@ -239,9 +294,18 @@ export default function CampusTabsLayout() {
         name="appeals"
         options={{
           title: 'Appeals',
+<<<<<<< HEAD
           // Merged into the Monitor tab's "Appeals" segment; the route stays
           // registered (hidden) for the student deep link from My Attendance.
           ...gatedTab(false, 'Appeals', 'mail-open-outline', 'mail-open'),
+=======
+          ...gatedTab(
+            isStaff,
+            'Appeals',
+            'mail-open-outline',
+            'mail-open'
+          ),
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
         }}
       />
       <Tabs.Screen
@@ -283,11 +347,14 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
+<<<<<<< HEAD
   tabIconWrap: {
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
   },
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   tabLabel: {
     fontSize: 12,
     lineHeight: 14,
@@ -296,6 +363,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
     textAlign: 'center',
   },
+<<<<<<< HEAD
   tabBadge: {
     position: 'absolute',
     top: -6,
@@ -317,6 +385,8 @@ const styles = StyleSheet.create({
     lineHeight: 12,
     textAlign: 'center',
   },
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   tabLabelActive: {
     color: '#FFFFFF',
     fontWeight: '700',

@@ -49,7 +49,11 @@ export default function AnimatedPressable({
   disabled = false,
   style,
   pressScale = 0.96,
+<<<<<<< HEAD
   glowColor = '#10367D',
+=======
+  glowColor = '#162660',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   accessibilityRole = 'button',
   accessibilityLabel,
   accessibilityState,

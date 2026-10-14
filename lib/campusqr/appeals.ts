@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { EventStatus, UserRole } from '@/types/database';
 import { suppressEcho, useCampusRealtime } from './realtime';
+=======
+import { supabase } from '@/lib/supabase';
+import type { EventStatus, UserRole } from '@/types/database';
+import { suppressEcho } from './realtime';
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { refusedMessage, verifyPatch } from './verify';
 
 export type AppealStatus = 'pending' | 'approved' | 'rejected';
@@ -126,7 +132,11 @@ export async function listAppealableEvents(
 /**
  * Staff review queue — one row per appeal (per absent student per event):
  *   • admin  → every appeal
+<<<<<<< HEAD
  *   • staff (teacher + admin) → every appeal (RLS enforces the same)
+=======
+ *   • teacher → appeals for the events they created (RLS enforces the same)
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
  */
 export async function listStaffQueue(
   userId: string,
@@ -141,6 +151,18 @@ export async function listStaffQueue(
     )
     .order('created_at', { ascending: false });
 
+<<<<<<< HEAD
+=======
+  if (role !== 'admin') {
+    const { data: events } = await supabase
+      .from('events')
+      .select('id')
+      .eq('created_by', userId);
+    const ids = (events ?? []).map((event: { id: string }) => event.id);
+    if (ids.length === 0) return [];
+    query = query.in('event_id', ids);
+  }
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
   const { data, error } = await query;
   if (error) return [];
@@ -148,6 +170,7 @@ export async function listStaffQueue(
 }
 
 /**
+<<<<<<< HEAD
  * Count of `pending` appeals the signed-in staff member may review.
  * RLS scopes the rows, so call this for staff only — a student's own
  * pending appeal would otherwise match and inflate the count.
@@ -211,6 +234,8 @@ export function usePendingAppealCount(isStaff: boolean): { count: number; refres
 }
 
 /**
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
  * Submits ONE appeal for ONE absent record. `attendanceId` must point at
  * the student's own `absent` row — the RLS INSERT policy verifies that
  * server-side, and the unique (student_id, event_id) constraint makes
@@ -238,7 +263,10 @@ export async function submitAppeal(input: {
     }
     return { error: error.message };
   }
+<<<<<<< HEAD
   notifyAppealsChanged();
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   suppressEcho('appeals');
   return { error: null };
 }
@@ -256,7 +284,10 @@ export async function reviewAppeal(
   feedback: string | null,
   attendanceId?: string | null
 ): Promise<{ error: string | null }> {
+<<<<<<< HEAD
   notifyAppealsChanged();
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   if (!(await tableExists())) return { error: 'Appeals table is not set up yet.' };
 
   const { error } = await supabase
@@ -278,7 +309,10 @@ export async function reviewAppeal(
     // The guarded UPDATE matched 0 rows: the appeal already has a decision.
     return { error: 'This appeal has already been reviewed.' };
   }
+<<<<<<< HEAD
   notifyAppealsChanged();
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
   if (status === 'approved' && attendanceId) {
     const { error: attError } = await supabase

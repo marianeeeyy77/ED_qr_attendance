@@ -1,7 +1,12 @@
+<<<<<<< HEAD
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
+=======
+import { useCallback, useRef, useState } from 'react';
+import {
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,7 +23,10 @@ import BusyButton from '@/components/BusyButton';
 import LockedView from '@/components/LockedView';
 import ResultPanel, { type ResultTone } from '@/components/ResultPanel';
 import SafeCameraView, { useCameraPermissions } from '@/components/SafeCamera';
+<<<<<<< HEAD
 import ScreenTransition from '@/components/ScreenTransition';
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { useToast } from '@/components/CampusToast';
 import { COLORS } from '@/constants/colors';
 import { checkIn } from '@/lib/campusqr/attendance';
@@ -36,9 +44,12 @@ const RESULT_TONE: Record<CheckInResultType, ResultTone> = {
 /** Minimum gap between accepted scans — prevents rapid duplicate frames. */
 const SCAN_COOLDOWN_MS = 2000;
 
+<<<<<<< HEAD
 /** Vertical travel (px) of the animated scan bar inside the reticle frame. */
 const SCAN_BAR_TRAVEL = 260;
 
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 const RESULT_TITLE: Record<CheckInResultType, string> = {
   success: 'Check-in complete',
   duplicate: 'Already checked in',
@@ -59,6 +70,7 @@ export default function CampusScanScreen() {
   const [busy, setBusy] = useState(false);
   const handlingRef = useRef(false);
   const cooldownRef = useRef(0);
+<<<<<<< HEAD
   const scanBarY = useRef(new Animated.Value(0)).current;
 
   // Laser-sweep animation: the bar glides down the reticle and back up
@@ -89,6 +101,8 @@ export default function CampusScanScreen() {
     sweep.start();
     return () => sweep.stop();
   }, [phase, result, scanBarY]);
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 
   useFocusEffect(useCallback(() => {
     handlingRef.current = false;
@@ -145,7 +159,10 @@ export default function CampusScanScreen() {
 
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
       <ScreenTransition style={styles.flex}>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Scan QR</Text>
@@ -175,7 +192,11 @@ export default function CampusScanScreen() {
                     <View style={[styles.corner, styles.cornerTR]} />
                     <View style={[styles.corner, styles.cornerBL]} />
                     <View style={[styles.corner, styles.cornerBR]} />
+<<<<<<< HEAD
                     <Animated.View style={[styles.scanBar, { transform: [{ translateY: scanBarY }] }]} />
+=======
+                    <View style={styles.scanBar} />
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
                   </View>
                 </View>
               ) : (
@@ -190,7 +211,11 @@ export default function CampusScanScreen() {
             <View style={styles.manualBox}>
               <Text style={styles.label}>Event code</Text>
               <TextInput style={styles.input} value={manualCode} onChangeText={setManualCode}
+<<<<<<< HEAD
                 placeholder="Paste your manual code here"
+=======
+                placeholder="CAMPUSQR:<token> or paste the token"
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
                 placeholderTextColor={COLORS.textSecondary}
                 autoCapitalize="none" editable={!busy && !scannerStopped} />
               <BusyButton title="Check In" loadingTitle="Checking In..." icon="checkmark-outline"
@@ -211,7 +236,10 @@ export default function CampusScanScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+<<<<<<< HEAD
       </ScreenTransition>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     </View>
   );
 }
@@ -220,36 +248,58 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
+<<<<<<< HEAD
   title: { fontSize: 22, fontWeight: '700', color: '#10367D', marginBottom: 12, textAlign: 'center', paddingTop: 12 },
+=======
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginBottom: 12, textAlign: 'center', paddingTop: 12 },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   subtitle: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 16 },
   permissionBox: { flex: 1, justifyContent: 'center', paddingHorizontal: 32, alignItems: 'center', gap: 12 },
   linkButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
   linkText: { fontSize: 15, fontWeight: '600', color: COLORS.primary },
   segment: {
+<<<<<<< HEAD
     flexDirection: 'row', backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 999,
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)', padding: 4, marginBottom: 16,
+=======
+    flexDirection: 'row', backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 999,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 4, marginBottom: 16,
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   },
   segmentButton: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 999 },
   // The outer Pressable must also flex so both segments split the row 50/50
   // (inner `style` alone would shrink-wrap each to its text width).
   segmentOuter: { flex: 1 },
+<<<<<<< HEAD
   segmentActive: { backgroundColor: '#10367D' },
+=======
+  segmentActive: { backgroundColor: '#162660' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   segmentText: { fontSize: 15, fontWeight: '600', color: '#4A5878' },
   segmentTextActive: { color: '#FFFFFF' },
   cameraBox: { alignItems: 'center', gap: 10, marginBottom: 16 },
   cameraFrame: { width: '100%', height: 320, borderRadius: 16, overflow: 'hidden', position: 'relative' },
   camera: { width: '100%', height: 320, borderRadius: 16, overflow: 'hidden' },
   reticle: { position: 'absolute', left: 24, right: 24, top: 24, bottom: 24 },
+<<<<<<< HEAD
   corner: { position: 'absolute', width: 34, height: 34, borderColor: '#5098C3' },
+=======
+  corner: { position: 'absolute', width: 34, height: 34, borderColor: '#2A5BD7' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   cornerTL: { top: 0, left: 0, borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 10 },
   cornerTR: { top: 0, right: 0, borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 10 },
   cornerBL: { bottom: 0, left: 0, borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: 10 },
   cornerBR: { bottom: 0, right: 0, borderBottomWidth: 3, borderRightWidth: 3, borderBottomRightRadius: 10 },
   scanBar: {
+<<<<<<< HEAD
     position: 'absolute', left: 8, right: 8, top: 0, height: 3,
     backgroundColor: 'rgba(56,189,248,0.9)', borderRadius: 3,
     shadowColor: '#38BDF8', shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9, shadowRadius: 6, elevation: 6,
+=======
+    position: 'absolute', left: 8, right: 8, top: '48%', height: 2,
+    backgroundColor: 'rgba(56,189,248,0.7)', borderRadius: 2,
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   },
   helper: { fontSize: 13, color: '#4A5878', textAlign: 'center' },
   cameraPaused: {

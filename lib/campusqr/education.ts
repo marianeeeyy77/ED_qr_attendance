@@ -21,6 +21,7 @@ export const LEVEL_OPTIONS: LevelOption[] = [
 /** College courses. */
 export const COURSE_OPTIONS = [
   'BS Information Technology',
+<<<<<<< HEAD
   'BS Entrep',
   'BS Hospitaly Management',
   'BPED',
@@ -29,6 +30,12 @@ export const COURSE_OPTIONS = [
   'BSED Math',
   'BSED Science',
   'BSED Filipino',
+=======
+  'BS Computer Science',
+  'BS Education',
+  'BS Nursing',
+  'BS Business Administration',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 ] as const;
 
 /** Senior High tracks. */

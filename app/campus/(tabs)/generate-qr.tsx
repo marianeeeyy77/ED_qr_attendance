@@ -7,7 +7,10 @@ import QRCode from 'react-native-qrcode-svg';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import Dropdown from '@/components/Dropdown';
 import EmptyState from '@/components/EmptyState';
+<<<<<<< HEAD
 import ScreenTransition from '@/components/ScreenTransition';
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
 import { useToast } from '@/components/CampusToast';
 import { COLORS, SPACING } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
@@ -65,7 +68,10 @@ export default function GenerateQrScreen() {
 
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
       <ScreenTransition style={styles.flex}>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Generate QR</Text>
 
@@ -133,7 +139,11 @@ export default function GenerateQrScreen() {
                 </View>
                 <View style={styles.actionRow}>
                   <AnimatedPressable
+<<<<<<< HEAD
                     style={[styles.actionBtn, { backgroundColor: '#10367D' }]}
+=======
+                    style={[styles.actionBtn, { backgroundColor: '#162660' }]}
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
                     outerStyle={styles.actionBtnOuter}
                     onPress={() => router.push(`/campus/qr-display?id=${selected.id}`)}
                     glowColor={COLORS.primary}
@@ -144,10 +154,17 @@ export default function GenerateQrScreen() {
                     <Text style={styles.actionBtnText}>Fullscreen</Text>
                   </AnimatedPressable>
                   <AnimatedPressable
+<<<<<<< HEAD
                     style={[styles.actionBtn, { backgroundColor: '#5098C3' }]}
                     outerStyle={styles.actionBtnOuter}
                     onPress={() => toast.info('Type the code shown into the Scan screen.')}
                     glowColor="#5098C3"
+=======
+                    style={[styles.actionBtn, { backgroundColor: '#2A5BD7' }]}
+                    outerStyle={styles.actionBtnOuter}
+                    onPress={() => toast.info('Type the code shown into the Scan screen.')}
+                    glowColor="#2A5BD7"
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
                     accessibilityRole="button"
                     accessibilityLabel="Copy Code"
                   >
@@ -160,13 +177,17 @@ export default function GenerateQrScreen() {
           </>
         )}
       </ScrollView>
+<<<<<<< HEAD
       </ScreenTransition>
+=======
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+<<<<<<< HEAD
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12, alignItems: 'stretch' },
   title: { fontSize: 22, fontWeight: '700', color: '#10367D', marginBottom: 12, textAlign: 'center' },
@@ -177,6 +198,17 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)', padding: 14, marginBottom: 12,
   },
   selectorTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#10367D' },
+=======
+  scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12, alignItems: 'stretch' },
+  title: { fontSize: 22, fontWeight: '700', color: '#162660', marginBottom: 12, textAlign: 'center' },
+  hint: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', paddingVertical: 24 },
+  selectorCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 14, marginBottom: 12,
+  },
+  selectorTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#162660' },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
   badgeOpen: { backgroundColor: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.4)' },
   badgeClosed: { backgroundColor: 'rgba(239,68,68,0.12)', borderColor: 'rgba(239,68,68,0.35)' },
@@ -184,6 +216,7 @@ const styles = StyleSheet.create({
   badgeOpenText: { color: '#10B981' },
   badgeClosedText: { color: '#EF4444' },
   mainCard: {
+<<<<<<< HEAD
     backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 16,
     borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)', padding: 16, alignItems: 'center',
   },
@@ -192,11 +225,22 @@ const styles = StyleSheet.create({
   guard: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12,
     backgroundColor: 'rgba(235, 235, 235, 0.88)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(16, 54, 125, 0.18)',
+=======
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)', padding: 16, alignItems: 'center',
+  },
+  eventName: { fontSize: 20, fontWeight: '700', color: '#162660', textAlign: 'center' },
+  meta: { fontSize: 13, color: '#4A5878', marginBottom: 2, textAlign: 'center' },
+  guard: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12,
+    backgroundColor: 'rgba(255, 253, 247, 0.88)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
     paddingHorizontal: 12, paddingVertical: 10, width: '100%',
   },
   guardText: { flex: 1, fontSize: 13, color: '#4A5878', lineHeight: 18 },
   qrPad: {
     marginTop: 16, backgroundColor: '#FFFFFF', padding: 14, borderRadius: 16,
+<<<<<<< HEAD
     borderWidth: 1.5, borderColor: 'rgba(16, 54, 125, 0.2)',
   },
   codePill: {
@@ -205,6 +249,16 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   codeText: { color: '#10367D', fontWeight: '700', textAlign: 'center', fontSize: 13 },
+=======
+    borderWidth: 1.5, borderColor: 'rgba(22, 38, 96, 0.2)',
+  },
+  codePill: {
+    marginTop: 14, backgroundColor: 'rgba(255, 253, 247, 0.88)', padding: 10,
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(22, 38, 96, 0.18)',
+    width: '100%',
+  },
+  codeText: { color: '#162660', fontWeight: '700', textAlign: 'center', fontSize: 13 },
+>>>>>>> ff02c248d1985765a235f26c5ed5a386e60bd1b5
   actionRow: { flexDirection: 'row', gap: SPACING.buttonGap, marginTop: 14 },
   actionBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
