@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
   panel: {
     borderRadius: 20,
     borderWidth: 1,
+    borderColor: 'rgba(17, 17, 17, 0.06)',
     padding: 18,
     width: '100%',
     alignItems: 'center',
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 14,
-    color: '#1A2740',
+    color: '#111111',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 4,

@@ -1,21 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Clipboard,
-  Easing,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import AnimatedPressable from '@/components/AnimatedPressable';
 import BusyButton from '@/components/BusyButton';
-import FieldWithIcon from '@/components/FieldWithIcon';
 import LockedView from '@/components/LockedView';
 import ResultPanel, { type ResultTone } from '@/components/ResultPanel';
 import SafeCameraView, { useCameraPermissions } from '@/components/SafeCamera';
@@ -38,9 +27,6 @@ const RESULT_TONE: Record<CheckInResultType, ResultTone> = {
 /** Minimum gap between accepted scans — prevents rapid duplicate frames. */
 const SCAN_COOLDOWN_MS = 2000;
 
-/** Vertical travel (px) of the animated scan bar inside the reticle frame. */
-const SCAN_BAR_TRAVEL = 260;
-
 const RESULT_TITLE: Record<CheckInResultType, string> = {
   success: 'Check-in complete',
   duplicate: 'Already checked in',
@@ -49,48 +35,19 @@ const RESULT_TITLE: Record<CheckInResultType, string> = {
   unauthorized: 'Not allowed',
 };
 
-type Phase = 'camera' | 'manual';
-
+/**
+ * Scan QR (camera-only): aligns with Events / My Attendance / Profile —
+ * same ScreenSheet + ScreenTransition + ScrollView shell, centered title,
+ * static corner reticle (no laser animation), no manual-code fallback.
+ */
 export default function CampusScanScreen() {
   const { role, loading: roleLoading } = useCampusRole();
   const toast = useToast();
   const [permission, requestPermission] = useCameraPermissions();
-  const [phase, setPhase] = useState<Phase>('camera');
-  const [manualCode, setManualCode] = useState('');
   const [result, setResult] = useState<CheckInResult | null>(null);
   const [busy, setBusy] = useState(false);
   const handlingRef = useRef(false);
   const cooldownRef = useRef(0);
-  const scanBarY = useRef(new Animated.Value(0)).current;
-
-  // Laser-sweep animation: the bar glides down the reticle and back up
-  // while the camera is live. The native driver keeps it at 60fps next to
-  // the camera feed; it stops whenever the camera view unmounts.
-  useEffect(() => {
-    if (phase !== 'camera' || result) {
-      scanBarY.stopAnimation();
-      return;
-    }
-    scanBarY.setValue(0);
-    const sweep = Animated.loop(
-      Animated.sequence([
-        Animated.timing(scanBarY, {
-          toValue: SCAN_BAR_TRAVEL,
-          duration: 1600,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(scanBarY, {
-          toValue: 0,
-          duration: 1600,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    sweep.start();
-    return () => sweep.stop();
-  }, [phase, result, scanBarY]);
 
   useFocusEffect(useCallback(() => {
     handlingRef.current = false;
@@ -119,42 +76,31 @@ export default function CampusScanScreen() {
 
   const handleScanAgain = () => {
     setResult(null);
-    setManualCode('');
     handlingRef.current = false;
-  };
-
-  // Instant fill from the clipboard (RN core Clipboard - no new native dep,
-  // so it works in the existing dev build). Never throws: failures are toasts.
-  const handlePaste = async () => {
-    try {
-      const code = (await Clipboard.getString() ?? '').trim();
-      if (code) {
-        setManualCode(code);
-        toast.success('Pasted from clipboard.');
-      } else {
-        toast.info('Clipboard is empty.');
-      }
-    } catch {
-      toast.error('Could not read the clipboard.');
-    }
   };
 
   if (!roleLoading && role !== null && role !== 'student') {
     return <LockedView message="Only student accounts can record attendance." />;
   }
 
-  if (!roleLoading && permission && !permission.granted && phase === 'camera') {
+  if (!roleLoading && permission && !permission.granted) {
     return (
       <View style={styles.container}>
-        <View style={styles.permissionBox}>
-          <Ionicons name="camera-outline" size={48} color={COLORS.textSecondary} />
-          <Text style={styles.title}>Camera Permission Needed</Text>
-          <Text style={styles.subtitle}>We need access to your camera to scan QR codes. You can also enter the event code manually.</Text>
-          <BusyButton title="Grant Permission" loadingTitle="Requesting..." icon="camera-outline" onPress={() => requestPermission()} loading={false} />
-          <AnimatedPressable style={styles.linkButton} onPress={() => setPhase('manual')}>
-            <Text style={styles.linkText}>Enter event code manually</Text>
-          </AnimatedPressable>
-        </View>
+        <ScreenSheet>
+        <ScreenTransition style={styles.flex}>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <Text style={styles.title}>Scan QR</Text>
+          <View style={styles.emptyCard}>
+            <View style={styles.emptyIcon}>
+              <Ionicons name="camera-outline" size={44} color="#3B82F6" />
+            </View>
+            <Text style={styles.emptyTitle}>Camera Permission Needed</Text>
+            <Text style={styles.emptySub}>We need access to your camera to scan QR codes.</Text>
+            <BusyButton title="Grant Permission" loadingTitle="Requesting..." icon="camera-outline" onPress={() => requestPermission()} loading={false} />
+          </View>
+        </ScrollView>
+        </ScreenTransition>
+        </ScreenSheet>
       </View>
     );
   }
@@ -165,71 +111,29 @@ export default function CampusScanScreen() {
     <View style={styles.container}>
       <ScreenSheet>
       <ScreenTransition style={styles.flex}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <Text style={styles.title}>Scan QR</Text>
-          <View style={styles.segment}>
-            <AnimatedPressable
-              style={[styles.segmentButton, phase === 'camera' && styles.segmentActive]}
-              outerStyle={styles.segmentOuter}
-              onPress={() => { setPhase('camera'); handleScanAgain(); }}>
-              <Text style={[styles.segmentText, phase === 'camera' && styles.segmentTextActive]}>Camera</Text>
-            </AnimatedPressable>
-            <AnimatedPressable
-              style={[styles.segmentButton, phase === 'manual' && styles.segmentActive]}
-              outerStyle={styles.segmentOuter}
-              onPress={() => { setPhase('manual'); handleScanAgain(); }}>
-              <Text style={[styles.segmentText, phase === 'manual' && styles.segmentTextActive]}>Manual code</Text>
-            </AnimatedPressable>
-          </View>
-          {phase === 'camera' ? (
-            <View style={styles.cameraBox}>
-              {!scannerStopped ? (
-                <View style={styles.cameraFrame}>
-                  <SafeCameraView style={styles.camera} facing="back"
-                    barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-                    onBarcodeScanned={({ data }) => handleRawScan(data)} />
-                  <View pointerEvents="none" style={styles.reticle}>
-                    <View style={[styles.corner, styles.cornerTL]} />
-                    <View style={[styles.corner, styles.cornerTR]} />
-                    <View style={[styles.corner, styles.cornerBL]} />
-                    <View style={[styles.corner, styles.cornerBR]} />
-                    <Animated.View style={[styles.scanBar, { transform: [{ translateY: scanBarY }] }]} />
-                  </View>
+          <View style={styles.cameraBox}>
+            {!scannerStopped ? (
+              <View style={styles.cameraFrame}>
+                <SafeCameraView style={styles.camera} facing="back"
+                  barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                  onBarcodeScanned={({ data }) => handleRawScan(data)} />
+                <View pointerEvents="none" style={styles.reticle}>
+                  <View style={[styles.corner, styles.cornerTL]} />
+                  <View style={[styles.corner, styles.cornerTR]} />
+                  <View style={[styles.corner, styles.cornerBL]} />
+                  <View style={[styles.corner, styles.cornerBR]} />
                 </View>
-              ) : (
-                <View style={styles.cameraPaused}>
-                  <Ionicons name="pause-circle-outline" size={44} color={COLORS.textSecondary} />
-                  <Text style={styles.hint}>Scanner paused — see your result below.</Text>
-                </View>
-              )}
-              <Text style={styles.helper}>Align QR code within frame to check in</Text>
-            </View>
-          ) : (
-            <View style={styles.manualBox}>
-              <Text style={styles.label}>Event code</Text>
-              <View style={styles.inputRow}>
-                <FieldWithIcon icon="qr-code-outline" containerStyle={[styles.input, styles.inputFlex]} value={manualCode} onChangeText={setManualCode}
-                  placeholder="Paste your manual code here"
-                  placeholderTextColor={COLORS.textSecondary}
-                  autoCapitalize="none" editable={!busy && !scannerStopped} />
-                <AnimatedPressable
-                  style={styles.pasteButton}
-                  onPress={handlePaste}
-                  glowColor={COLORS.accent}
-                  accessibilityRole="button"
-                  accessibilityLabel="Paste event code from clipboard"
-                  hitSlop={8}
-                >
-                  <Ionicons name="clipboard-outline" size={20} color="#1E40AF" />
-                </AnimatedPressable>
               </View>
-              <BusyButton title="Check In" loadingTitle="Checking In..." icon="checkmark-outline"
-                onPress={() => manualCode.trim() && handleRawScan(manualCode)}
-                loading={busy} disabled={!manualCode.trim() || scannerStopped}
-                style={manualCode.trim() && !scannerStopped ? styles.checkInActive : styles.checkInIdle} />
-            </View>
-          )}
+            ) : (
+              <View style={styles.cameraPaused}>
+                <Ionicons name="pause-circle-outline" size={44} color={COLORS.textSecondary} />
+                <Text style={styles.hint}>Scanner paused — see your result below.</Text>
+              </View>
+            )}
+            <Text style={styles.helper}>Align QR code within frame to check in</Text>
+          </View>
           {busy && !result && <Text style={styles.hint}>Recording attendance...</Text>}
           {result && (
             <View style={styles.resultWrap}>
@@ -242,7 +146,6 @@ export default function CampusScanScreen() {
             </View>
           )}
         </ScrollView>
-      </KeyboardAvoidingView>
       </ScreenTransition>
       </ScreenSheet>
     </View>
@@ -250,25 +153,22 @@ export default function CampusScanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background, justifyContent: 'flex-start' },
+  container: { flex: 1, backgroundColor: COLORS.background },
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 12 },
   title: { fontSize: 22, fontWeight: '700', color: NEUMO.title, marginBottom: 12, textAlign: 'center', paddingTop: 12 },
-  subtitle: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 16 },
-  permissionBox: { flex: 1, justifyContent: 'center', paddingHorizontal: 32, alignItems: 'center', gap: 12 },
-  linkButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
-  linkText: { fontSize: 15, fontWeight: '600', color: COLORS.primary },
-  segment: {
-    flexDirection: 'row', backgroundColor: NEUMO.surface, borderRadius: 999,
-    borderWidth: 1, borderTopColor: NEUMO.highlight, padding: 4, marginBottom: 16,
+  emptyCard: {
+    backgroundColor: NEUMO.surface, borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
+    padding: 28, alignItems: 'center',
   },
-  segmentButton: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 999 },
-  // The outer Pressable must also flex so both segments split the row 50/50
-  // (inner `style` alone would shrink-wrap each to its text width).
-  segmentOuter: { flex: 1 },
-  segmentActive: { backgroundColor: NEUMO.title },
-  segmentText: { fontSize: 15, fontWeight: '600', color: '#334155' },
-  segmentTextActive: { color: '#FFFFFF' },
+  emptyIcon: {
+    width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(56,189,248,0.12)', borderWidth: 1, borderColor: 'rgba(56,189,248,0.35)',
+    marginBottom: 14,
+  },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: NEUMO.title, textAlign: 'center', marginBottom: 6 },
+  emptySub: { fontSize: 13, color: '#334155', textAlign: 'center', lineHeight: 19, marginBottom: 16 },
   cameraBox: { alignItems: 'center', gap: 10, marginBottom: 16 },
   cameraFrame: { width: '100%', height: 320, borderRadius: 16, overflow: 'hidden', position: 'relative' },
   camera: { width: '100%', height: 320, borderRadius: 16, overflow: 'hidden' },
@@ -285,51 +185,19 @@ const styles = StyleSheet.create({
   cornerTR: { top: 0, right: 0, borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 10 },
   cornerBL: { bottom: 0, left: 0, borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: 10 },
   cornerBR: { bottom: 0, right: 0, borderBottomWidth: 3, borderRightWidth: 3, borderBottomRightRadius: 10 },
-  scanBar: {
-    position: 'absolute', left: 8, right: 8, top: 0, height: 3,
-    backgroundColor: 'rgba(56,189,248,0.9)', borderRadius: 3,
-    shadowColor: '#38BDF8', shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9, shadowRadius: 6, elevation: 6,
-  },
   helper: { fontSize: 13, color: '#334155', textAlign: 'center' },
   cameraPaused: {
     width: '100%', height: 320, borderRadius: 18, backgroundColor: NEUMO.surface,
-    borderWidth: 1, borderColor: 'rgba(30, 64, 175, 0.10)', borderTopWidth: 1, borderTopColor: NEUMO.highlight,
+    borderWidth: 1, borderTopWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
     alignItems: 'center', justifyContent: 'center', gap: 8,
     shadowColor: NEUMO.darkShadow, shadowOffset: NEUMO.extrudeOffset,
     shadowOpacity: NEUMO.extrudeOpacity, shadowRadius: NEUMO.extrudeRadius, elevation: 3,
   },
   hint: { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center' },
-  manualBox: { width: '100%', marginBottom: 8 },
-  label: { fontSize: 13, fontWeight: '700', color: NEUMO.title, letterSpacing: 0.3, marginBottom: 6 },
-  input: {
-    backgroundColor: NEUMO.surface, borderRadius: NEUMO.inputRadius,
-    borderWidth: 0, borderTopWidth: 1, borderTopColor: NEUMO.highlight,
-    paddingHorizontal: 14, paddingVertical: 12, minHeight: 48, fontSize: 15, color: NEUMO.title, marginBottom: 12,
-    shadowColor: NEUMO.darkShadow, shadowOffset: NEUMO.extrudeOffset,
-    shadowOpacity: NEUMO.extrudeOpacity, shadowRadius: NEUMO.extrudeRadius, elevation: 3,
-  },
   resultWrap: { width: '100%', marginTop: 8 },
   secondaryButton: {
     minHeight: 44, marginTop: 12, flexDirection: 'row', gap: 6,
     alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16,
   },
   secondaryText: { fontSize: 15, fontWeight: '600', color: COLORS.primary },
-
-  // Manual tab: input + icon-only paste button share one row.
-  inputRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  inputFlex: { flex: 1 },
-  pasteButton: {
-    width: 48, height: 48, minHeight: 48, borderRadius: 12,
-    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 0,
-    backgroundColor: NEUMO.surface,
-    borderWidth: 1, borderTopColor: NEUMO.highlight,
-  },
-  // Check In: muted until a valid code is entered, vibrant blue after.
-  checkInIdle: { backgroundColor: '#94A3B8', borderColor: '#64748B' },
-  checkInActive: {
-    backgroundColor: COLORS.primary, borderColor: COLORS.primaryDeep,
-    shadowColor: COLORS.primary, shadowOpacity: 0.4,
-    shadowRadius: 14, elevation: 8,
-  },
 });

@@ -78,9 +78,6 @@ export default function EventsScreen() {
   const isStudentView = !isStaff;
   const filters = isStaff ? STATUS_FILTERS : (['all', 'open', 'closed'] as Filter[]);
 
-  const pillColor = (option: Filter) =>
-    option === 'open' ? '#10B981' : option === 'closed' ? '#EF4444' : option === 'draft' ? '#3B82F6' : '#1E40AF';
-
   const handleToggleStatus = async (event: EventRow) => {
     const next: EventStatus = event.status === 'open' ? 'closed' : 'open';
     const { error } = await setEventStatus(event.id, next);
@@ -142,10 +139,8 @@ export default function EventsScreen() {
             <View style={styles.filterRow}>
               {filters.map((option) => {
                 const active = filter === option;
-                const color = pillColor(option);
-                const activeStyle = isStudentView
-                  ? styles.filterChipActive
-                  : { backgroundColor: color, borderColor: color };
+                // Every role tints the touched chip pink (black & pink theme).
+                const activeStyle = styles.filterChipActive;
                 return (
                   <AnimatedPressable
                     key={option}
@@ -214,8 +209,6 @@ export default function EventsScreen() {
             const tone = statusTone[event.status] ?? statusTone.draft;
             return (
               <View key={event.id} style={styles.card}>
-                {/* Left status indicator (spec): colored bar keyed to event status. */}
-                <View style={[styles.statusBar, { backgroundColor: tone.bar }]} />
                 <View style={styles.cardBody}>
                 <View style={styles.cardHeader}>
                   <Text style={styles.cardTitle}>{event.name}</Text>
@@ -269,7 +262,7 @@ export default function EventsScreen() {
                         accessibilityLabel="Toggle status"
                       >
                         <Ionicons
-                          name={event.status === 'open' ? 'lock-closed-outline' : 'lock-open-outline'}
+                          name={event.status === 'open' ? 'lock-open-outline' : 'lock-closed-outline'}
                           size={18}
                           color="#1E40AF"
                         />
@@ -300,7 +293,7 @@ export default function EventsScreen() {
           outerStyle={styles.fabWrap}
           style={styles.fab}
           onPress={() => router.push('/campus/event-form')}
-          glowColor="#FFFFFF"
+          glowColor="#E85D8A"
           accessibilityRole="button"
           accessibilityLabel="Create New Event"
         >
@@ -326,16 +319,16 @@ const styles = StyleSheet.create({
   // outer = position/size, inner = surface (AnimatedPressable slots).
   fabWrap: { position: 'absolute', right: 20, bottom: 24, width: 56, height: 56 },
   fab: {
-    flex: 1, borderRadius: 16, backgroundColor: NEUMO.title,
+    flex: 1, borderRadius: 16, backgroundColor: COLORS.primary,
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: NEUMO.title, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35, shadowRadius: 8, elevation: 8,
+    shadowColor: COLORS.primaryDeep, shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45, shadowRadius: 8, elevation: 8,
   },
   filterRow: { flexDirection: 'row', paddingTop: 12, paddingBottom: 12, gap: 8 },
   filterChip: {
     minHeight: 40, paddingHorizontal: 16, justifyContent: 'center',
     borderRadius: 999, backgroundColor: NEUMO.surface,
-    borderWidth: 1, borderTopColor: NEUMO.highlight,
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
   },
   filterChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   filterText: { fontSize: 14, fontWeight: '600', color: '#334155', textTransform: 'capitalize' },
@@ -353,8 +346,6 @@ const styles = StyleSheet.create({
     shadowColor: '#1E3A8A', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08, shadowRadius: 12, elevation: 3,
   },
-  /** Left status indicator — 5pt bar keyed to the event status. */
-  statusBar: { width: 5 },
   cardBody: { flex: 1, padding: 16 },
   // Standard card rhythm (universal): header pins title + badge to the
   // TOP, then pin row, calendar row, description last.
@@ -374,7 +365,7 @@ const styles = StyleSheet.create({
   actionButton: {
     minHeight: BTN.secondary, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 4,
     backgroundColor: NEUMO.surface, borderRadius: RADIUS.button,
-    borderWidth: 1, borderTopColor: NEUMO.highlight,
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
   },
   actionText: { fontSize: 14, fontWeight: '600', color: NEUMO.title },
   deleteText: { color: '#EF4444' },

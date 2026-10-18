@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Dimensions,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,35 +13,18 @@ import {
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import AnimatedPressable from '@/components/AnimatedPressable';
-import BusyButton from '@/components/BusyButton';
-import FieldWithIcon from '@/components/FieldWithIcon';
-import EducationFields from '@/components/EducationFields';
-import Gradient from '@/components/Gradient';
-import Header from '@/components/Header';
 import ScreenTransition from '@/components/ScreenTransition';
 import { useToast } from '@/components/CampusToast';
-import { COLORS, GRADIENTS, NEUMO, BTN } from '@/constants/colors';
-import { SHADOWS, TYPOGRAPHY } from '@/constants/theme';
 import { signUp } from '@/lib/campusqr/auth';
-import {
-  EMPTY_EDUCATION,
-  validateLevelFields,
-  type EducationErrors,
-  type EducationValues,
-} from '@/lib/campusqr/education';
 
 /**
- * CampusQR Register (spec Phase 2): full name, phone, student number and
- * the Educational Level dropdown that conditionally reveals fields per
- * level. Signup metadata NEVER carries role or is_active — the database
- * trigger hardcodes student.
- *
- * Republic Act No. 10173 (Data Privacy Act of 2012): a mandatory consent
- * checkbox gates submission — the notice states what is collected, why, and
- * the user's access / correction / objection / erasure rights.
+ * CampusQR Register: Full Name + Email + Student Number + Create Password +
+ * Confirm Password. Signup metadata NEVER carries role or is_active — the
+ * database trigger hardcodes student.
  */
 export default function CampusRegisterScreen() {
   const router = useRouter();
@@ -49,30 +33,18 @@ export default function CampusRegisterScreen() {
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [studentNo, setStudentNo] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [consent, setConsent] = useState(false);
-  const [education, setEducation] = useState<EducationValues>({
-    ...EMPTY_EDUCATION,
-  });
-  const [levelErrors, setLevelErrors] = useState<EducationErrors>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
     setError(null);
-    setLevelErrors({});
 
-    if (
-      !fullName.trim() ||
-      !email.trim() ||
-      !phone.trim() ||
-      !studentNo.trim() ||
-      !password ||
-      !confirmPassword
-    ) {
+    if (!fullName.trim() || !email.trim() || !studentNo.trim() || !password || !confirmPassword) {
       setError('All fields are required.');
       return;
     }
@@ -85,29 +57,11 @@ export default function CampusRegisterScreen() {
       return;
     }
 
-    const errors = validateLevelFields(education);
-    if (Object.keys(errors).length > 0) {
-      setLevelErrors(errors);
-      setError('Please complete your educational information.');
-      return;
-    }
-
-    if (!consent) {
-      setError('You must agree to the Data Privacy Notice to create an account.');
-      return;
-    }
-
     setLoading(true);
     try {
       const { data, error: authError } = await signUp(email.trim(), password, {
         full_name: fullName.trim(),
-        phone: phone.trim(),
         student_no: studentNo.trim(),
-        educational_level: education.educational_level ?? undefined,
-        course: education.course.trim() || undefined,
-        year_level: education.year_level.trim() || undefined,
-        block: education.block.trim() || undefined,
-        section: education.section.trim() || undefined,
         // NOTE: no role / is_active — public signups are always students.
       });
 
@@ -137,15 +91,8 @@ export default function CampusRegisterScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Top blue gradient hero (styling-only): logo + white app title. */}
-      <Gradient
-        colors={GRADIENTS.header}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.hero, { paddingTop: insets.top + 8 }]}
-      >
-        <Header title="School Attendance System" animated={false} variant="hero" />
-      </Gradient>
+      {/* Pink hero + wave into black (matches login). */}
+      <View style={[styles.hero, { paddingTop: insets.top + 8 }]} />
       <ScreenTransition style={styles.flex}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
@@ -154,151 +101,126 @@ export default function CampusRegisterScreen() {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
-            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 32 }]}
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Rounded white sheet overlay (spec): 32pt top corners, soft
-                drop shadow, tucked over the gradient hero. */}
+            <View style={styles.waveWrap} aria-hidden>
+              <Svg width={W} height={52} viewBox={`0 0 ${W} 52`} preserveAspectRatio="none">
+                <Path
+                  d={`M0,30 C${W * 0.25},6 ${W * 0.4},6 ${W * 0.55},24 C${W * 0.7},42 ${W * 0.86},36 ${W},20 L${W},52 L0,52 Z`}
+                  fill="#111111"
+                />
+              </Svg>
+            </View>
             <View style={styles.sheet}>
-            <Text style={[styles.title, TYPOGRAPHY.display]}>Create Account</Text>
-            <Text style={styles.subtitle}>
-              Sign up to get started with School Attendance System
-            </Text>
-            <Text style={styles.accountNote}>
-              New accounts start as Student — personnel roles are assigned by
-              an administrator.
-            </Text>
+            <View style={styles.markCircleTop}>
+              <Ionicons name="qr-code" size={44} color="#FFFFFF" />
+            </View>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Sign up to get started.</Text>
 
-            <View style={styles.fadeBody}>
-              <View style={styles.form}>
-                <Text style={styles.label}>Full Name</Text>
-                <FieldWithIcon
-                  icon="person-outline"
-                  containerStyle={styles.input}
+            <View style={styles.form}>
+              <Text style={styles.label}>Full Name</Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.input}
                   value={fullName}
                   onChangeText={setFullName}
                   placeholder="Juan Dela Cruz"
-                  placeholderTextColor={COLORS.textSecondary}
+                  placeholderTextColor="#8A8A8A"
                   editable={!loading}
                 />
+              </View>
 
-                <Text style={styles.label}>Email</Text>
-                <FieldWithIcon
-                  icon="mail-outline"
-                  containerStyle={styles.input}
+              <Text style={styles.label}>Email</Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.input}
                   value={email}
                   onChangeText={setEmail}
                   placeholder="your.email@school.edu"
-                  placeholderTextColor={COLORS.textSecondary}
+                  placeholderTextColor="#8A8A8A"
                   autoCapitalize="none"
                   keyboardType="email-address"
                   editable={!loading}
                 />
+              </View>
 
-                <Text style={styles.label}>Phone</Text>
-                <FieldWithIcon
-                  icon="call-outline"
-                  containerStyle={styles.input}
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder="09XXXXXXXXX"
-                  placeholderTextColor={COLORS.textSecondary}
-                  keyboardType="phone-pad"
-                  editable={!loading}
-                />
-
-                <Text style={styles.label}>Student Number</Text>
-                <FieldWithIcon
-                  icon="id-card-outline"
-                  containerStyle={styles.input}
+              <Text style={styles.label}>Student ID</Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.input}
                   value={studentNo}
                   onChangeText={setStudentNo}
                   placeholder="e.g. 2026-000123"
-                  placeholderTextColor={COLORS.textSecondary}
+                  placeholderTextColor="#8A8A8A"
                   autoCapitalize="characters"
                   editable={!loading}
                 />
+              </View>
 
-                <View style={styles.educationSection}>
-                  <EducationFields
-                    value={education}
-                    onChange={(next) => {
-                      setEducation(next);
-                      setLevelErrors({});
-                    }}
-                    errors={levelErrors}
-                    disabled={loading}
-                  />
-                </View>
-
-                <Text style={styles.label}>Password</Text>
-                <FieldWithIcon
-                  icon="lock-closed-outline"
-                  containerStyle={styles.input}
+              <Text style={styles.label}>Create Password</Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={[styles.input, styles.inputFlex]}
                   value={password}
                   onChangeText={setPassword}
                   placeholder="At least 6 characters"
-                  placeholderTextColor={COLORS.textSecondary}
-                  secureTextEntry
+                  placeholderTextColor="#8A8A8A"
+                  secureTextEntry={!showPassword}
                   editable={!loading}
                 />
+                <AnimatedPressable
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword((v) => !v)}
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color="#CFCFCF" />
+                </AnimatedPressable>
+              </View>
 
-                <Text style={styles.label}>Confirm Password</Text>
-                <FieldWithIcon
-                  icon="shield-checkmark-outline"
-                  containerStyle={styles.input}
+              <Text style={styles.label}>Confirm Password</Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={[styles.input, styles.inputFlex]}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   placeholder="Re-enter your password"
-                  placeholderTextColor={COLORS.textSecondary}
-                  secureTextEntry
+                  placeholderTextColor="#8A8A8A"
+                  secureTextEntry={!showConfirmPassword}
                   editable={!loading}
                 />
-
-                <View style={styles.consentSection}>
-                  <Text style={styles.consentTitle}>Data Privacy Notice</Text>
-                  <Text style={styles.consentText}>
-                    Republic Act No. 10173 (Data Privacy Act of 2012). Your personal and
-                    attendance data is used solely for school purposes. 
-                  </Text>
-
-                  <AnimatedPressable
-                    style={styles.consentRow}
-                    onPress={() => setConsent(!consent)}
-                    disabled={loading}
-                    glowColor={COLORS.primary}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: consent }}
-                    accessibilityLabel="I have read and agree to the Data Privacy Notice"
-                  >
-                    <View style={[styles.consentBox, consent && styles.consentBoxChecked]}>
-                      {consent && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
-                    </View>
-                    <Text style={styles.consentLabel}>
-                      I have read and agree to the Data Privacy Notice.
-                    </Text>
-                  </AnimatedPressable>
-                </View>
-
-                {error && <Text style={styles.error}>{error}</Text>}
-
-                <View style={styles.actionContainer}>
-                  <BusyButton
-                    title="Sign Up"
-                    loadingTitle="Creating Account..."
-                    icon="person-add-outline"
-                    onPress={handleRegister}
-                    loading={loading}
-                  />
-                </View>
+                <AnimatedPressable
+                  style={styles.eyeButton}
+                  onPress={() => setShowConfirmPassword((v) => !v)}
+                  accessibilityRole="button"
+                  accessibilityLabel={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  <Ionicons name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color="#CFCFCF" />
+                </AnimatedPressable>
               </View>
 
+              {error && <Text style={styles.error}>{error}</Text>}
+
+              <View style={styles.actionContainer}>
+                <AnimatedPressable
+                  style={styles.signUpButton}
+                  onPress={handleRegister}
+                  glowColor="#E85D8A"
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign up"
+                >
+                  <Text style={styles.signUpText}>{loading ? 'CREATING...' : 'SIGN UP'}</Text>
+                </AnimatedPressable>
+              </View>
             </View>
 
-            <Link href="/campus/login" style={styles.link}>
-              Already have an account? Sign In
-            </Link>
+            <Text style={styles.switchRow}>
+              <Text style={styles.switchMuted}>Already have an account? </Text>
+              <Link href="/campus/login" style={styles.switchLink}>Sign In</Link>
+            </Text>
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
@@ -308,197 +230,44 @@ export default function CampusRegisterScreen() {
   );
 }
 
+const W = Dimensions.get('window').width;
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+  container: { flex: 1, backgroundColor: '#F6A9C6' },
+  hero: { height: 120, backgroundColor: '#F6A9C6' },
   flex: { flex: 1 },
-  keyboardView: {
-    flex: 1,
+  keyboardView: { flex: 1, backgroundColor: '#111111' },
+  scrollContent: { flexGrow: 1, backgroundColor: '#111111' },
+  waveWrap: { backgroundColor: '#F6A9C6', marginBottom: -1 },
+  sheet: { flex: 1, backgroundColor: '#111111', paddingHorizontal: 24, paddingTop: 20, alignItems: 'center' },
+  markCircleTop: {
+    width: 96, height: 96, borderRadius: 48, marginBottom: 16, alignSelf: 'center',
+    backgroundColor: '#E85D8A',
+    alignItems: 'center', justifyContent: 'center',
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 40,
+  title: { fontSize: 30, fontWeight: '800', color: '#FFFFFF', marginBottom: 6, textAlign: 'center' },
+  subtitle: { fontSize: 14, fontWeight: '400', color: '#FFFFFF', marginBottom: 24, lineHeight: 20, textAlign: 'center' },
+  form: { width: '100%', marginBottom: 12 },
+  label: { fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginBottom: 8, marginTop: 14 },
+  inputRow: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#1E1E1E', borderRadius: 14,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 16, minHeight: 54,
   },
-  /** Top blue gradient hero band (styling-only). */
-  hero: {
-    paddingBottom: 40,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
+  input: { flex: 1, fontSize: 15, color: '#FFFFFF', paddingVertical: 14 },
+  inputFlex: { flex: 1 },
+  eyeButton: { padding: 6, marginLeft: 8 },
+  error: { fontSize: 14, color: '#FF9EBB', textAlign: 'center', marginTop: 12, fontWeight: '600' },
+  actionContainer: { marginTop: 24, width: '100%', alignItems: 'center' },
+  signUpButton: {
+    borderRadius: 14, minHeight: 52, paddingVertical: 15, paddingHorizontal: 40, minWidth: 200,
+    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F6A9C6',
+    shadowColor: '#E85D8A', shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45, shadowRadius: 14, elevation: 8,
   },
-  /** Rounded white sheet overlay tucked over the hero (spec: radius 32). */
-  sheet: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingHorizontal: 20,
-    paddingTop: 28,
-    paddingBottom: 4,
-    marginTop: -32,
-    ...SHADOWS.sheet,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  subtitle: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  accountNote: {
-    textAlign: 'center',
-    fontStyle: 'italic',
-    marginBottom: 20,
-    paddingHorizontal: 12,
-  },
-  consentSection: {
-    marginTop: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(30, 64, 175, 0.10)',
-  },
-  consentTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: NEUMO.title,
-    letterSpacing: 0.3,
-    marginBottom: 6,
-  },
-  consentText: {
-    fontSize: 12,
-    color: '#334155',
-    lineHeight: 18,
-    marginBottom: 8,
-  },
-  consentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    minHeight: BTN.secondary,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: NEUMO.surface,
-    borderRadius: NEUMO.inputRadius,
-    borderWidth: 0,
-    borderTopWidth: 1,
-    borderTopColor: NEUMO.highlight,
-    shadowColor: NEUMO.darkShadow,
-    shadowOffset: NEUMO.extrudeOffset,
-    shadowOpacity: NEUMO.extrudeOpacity,
-    shadowRadius: NEUMO.extrudeRadius,
-    elevation: 3,
-  },
-  consentBox: {
-    width: 24,
-    height: 24,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'rgba(30, 64, 175, 0.30)',
-    backgroundColor: 'rgba(255, 255, 255, 0.75)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  consentBoxChecked: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  consentLabel: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '600',
-    color: NEUMO.title,
-    lineHeight: 18,
-  },
-  form: {
-    width: '100%',
-    marginBottom: 24,
-  },
-  fadeBody: {
-    width: '100%',
-  },
-  educationSection: {
-    marginTop: 10,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(30, 64, 175, 0.10)',
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: NEUMO.title,
-    letterSpacing: 0.3,
-    marginBottom: 6,
-    marginTop: 10,
-    textAlign: 'left',
-  },
-  input: {
-    backgroundColor: NEUMO.surface,
-    borderRadius: NEUMO.inputRadius,
-    borderWidth: 0,
-    borderTopWidth: 1,
-    borderTopColor: NEUMO.highlight,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: NEUMO.title,
-    textAlign: 'left',
-    shadowColor: NEUMO.darkShadow,
-    shadowOffset: NEUMO.extrudeOffset,
-    shadowOpacity: NEUMO.extrudeOpacity,
-    shadowRadius: NEUMO.extrudeRadius,
-    elevation: 3,
-  },
-  error: {
-    fontSize: 14,
-    color: COLORS.danger,
-    textAlign: 'center',
-    marginTop: 12,
-    marginBottom: 4,
-    fontWeight: '600',
-  },
-  actionContainer: {
-    marginTop: 24,
-    width: '100%',
-  },
-  successContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-    padding: 20,
-    backgroundColor: NEUMO.surface,
-    borderRadius: NEUMO.cardRadius,
-    borderWidth: 0,
-    borderTopWidth: 1,
-    borderTopColor: NEUMO.highlight,
-    shadowColor: NEUMO.darkShadow,
-    shadowOffset: NEUMO.extrudeOffset,
-    shadowOpacity: NEUMO.extrudeOpacity,
-    shadowRadius: NEUMO.extrudeRadius,
-    elevation: 3,
-    width: '100%',
-  },
-  successTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: NEUMO.title,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  successText: {
-    fontSize: 14,
-    color: '#334155',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  link: {
-    fontSize: 14,
-    color: COLORS.primary,
-    textAlign: 'center',
-    fontWeight: '700',
-    paddingVertical: 8,
-  },
+  signUpText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 1.2 },
+  switchRow: { fontSize: 13, marginTop: 16, color: '#FFFFFF', textAlign: 'center' },
+  switchMuted: { color: '#EDEDED' },
+  switchLink: { color: '#F6A9C6', fontWeight: '800' },
 });

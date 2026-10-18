@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Dimensions,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,19 +13,16 @@ import {
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
-import BusyButton from '@/components/BusyButton';
-import FieldWithIcon from '@/components/FieldWithIcon';
-import Gradient from '@/components/Gradient';
-import Header from '@/components/Header';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import ScreenTransition from '@/components/ScreenTransition';
 import { useToast } from '@/components/CampusToast';
-import { COLORS, GRADIENTS, NEUMO } from '@/constants/colors';
-import { SHADOWS, TYPOGRAPHY } from '@/constants/theme';
 import { signIn } from '@/lib/campusqr/auth';
 import { defaultTabFor, getCurrentProfile } from '@/lib/campusqr/roles';
 
-/** CampusQR Login (spec Phase 2): email + password, session persisted. */
+/** CampusQR Login (mockup layout, mono B&W): email + password, session persisted. */
 export default function CampusLoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -32,6 +30,7 @@ export default function CampusLoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -72,15 +71,8 @@ export default function CampusLoginScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Top blue gradient hero (styling-only): logo + white app title. */}
-      <Gradient
-        colors={GRADIENTS.header}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.hero, { paddingTop: insets.top + 8 }]}
-      >
-        <Header title="School Attendance System" animated={false} variant="hero" />
-      </Gradient>
+      {/* White hero + wave into black (mockup). */}
+      <View style={[styles.hero, { paddingTop: insets.top + 8 }]} />
       <ScreenTransition style={styles.flex}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
@@ -89,62 +81,79 @@ export default function CampusLoginScreen() {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
-            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 32 }]}
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Rounded white sheet overlay (spec): 32pt top corners, soft
-                drop shadow, tucked over the gradient hero. */}
+            <View style={styles.waveWrap} aria-hidden>
+              <Svg width={W} height={52} viewBox={`0 0 ${W} 52`} preserveAspectRatio="none">
+                <Path
+                  d={`M0,30 C${W * 0.25},6 ${W * 0.4},6 ${W * 0.55},24 C${W * 0.7},42 ${W * 0.86},36 ${W},20 L${W},52 L0,52 Z`}
+                  fill="#111111"
+                />
+              </Svg>
+            </View>
             <View style={styles.sheet}>
-            <View style={styles.fadeBody}>
-            <Text style={[styles.title, TYPOGRAPHY.display]}>Welcome Back</Text>
-            <Text style={styles.subtitle}>
-              Sign in to your account
-            </Text>
+            <View style={styles.markCircleTop}>
+              <Ionicons name="qr-code" size={44} color="#FFFFFF" />
+            </View>
+            <Text style={styles.title}>Welcome!</Text>
+            <Text style={styles.subtitle}>Sign in to continue to your attendance account.</Text>
 
             <View style={styles.form}>
               <Text style={styles.label}>Email</Text>
-              <FieldWithIcon
-                icon="mail-outline"
-                containerStyle={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="your.email@school.edu"
-                placeholderTextColor={COLORS.textSecondary}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                editable={!loading}
-              />
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.input}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="your.email@school.edu"
+                  placeholderTextColor="#8A8A8A"
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  editable={!loading}
+                />
+              </View>
 
               <Text style={styles.label}>Password</Text>
-              <FieldWithIcon
-                icon="lock-closed-outline"
-                containerStyle={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
-                placeholderTextColor={COLORS.textSecondary}
-                secureTextEntry
-                editable={!loading}
-              />
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={[styles.input, styles.inputFlex]}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#8A8A8A"
+                  secureTextEntry={!showPassword}
+                  editable={!loading}
+                />
+                <AnimatedPressable
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword((v) => !v)}
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={22} color="#CFCFCF" />
+                </AnimatedPressable>
+              </View>
 
               {error && <Text style={styles.error}>{error}</Text>}
 
               <View style={styles.actionContainer}>
-                <BusyButton
-                  title="Sign In"
-                  loadingTitle="Signing In..."
-                  icon="log-in-outline"
+                <AnimatedPressable
+                  style={styles.signInButton}
                   onPress={handleLogin}
-                  loading={loading}
-                />
+                  glowColor="#000000"
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign in"
+                >
+                  <Text style={styles.signInText}>{loading ? 'SIGNING IN...' : 'SIGN IN'}</Text>
+                </AnimatedPressable>
               </View>
             </View>
 
-            <Link href="/campus/register" style={styles.link}>
-              Don&apos;t have an account? Sign Up
-            </Link>
-            </View>
+            <Text style={styles.switchRow}>
+              <Link href="/campus/register" style={styles.switchLink}>Create an Account</Link>
+            </Text>
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
@@ -154,97 +163,43 @@ export default function CampusLoginScreen() {
   );
 }
 
+const W = Dimensions.get('window').width;
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  /** Top blue gradient hero band (styling-only). */
-  hero: {
-    paddingBottom: 40,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-  },
+  container: { flex: 1, backgroundColor: '#F6A9C6' },
+  hero: { height: 120, backgroundColor: '#F6A9C6' },
   flex: { flex: 1 },
-  keyboardView: {
-    flex: 1,
+  keyboardView: { flex: 1, backgroundColor: '#111111' },
+  scrollContent: { flexGrow: 1, backgroundColor: '#111111' },
+  waveWrap: { backgroundColor: '#F6A9C6', marginBottom: -1 },
+  sheet: { flex: 1, backgroundColor: '#111111', paddingHorizontal: 24, paddingTop: 20, alignItems: 'center' },
+  markCircleTop: {
+    width: 96, height: 96, borderRadius: 48, marginBottom: 16, alignSelf: 'center',
+    backgroundColor: '#E85D8A',
+    alignItems: 'center', justifyContent: 'center',
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 40,
+  title: { fontSize: 30, fontWeight: '800', color: '#FFFFFF', marginBottom: 6, textAlign: 'center' },
+  subtitle: { fontSize: 14, fontWeight: '400', color: '#FFFFFF', marginBottom: 24, lineHeight: 20, textAlign: 'center' },
+  form: { width: '100%', marginBottom: 12 },
+  label: { fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginBottom: 8, marginTop: 14 },
+  inputRow: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#1E1E1E', borderRadius: 14,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 16, minHeight: 54,
   },
-  /** Rounded white sheet overlay tucked over the hero (spec: radius 32). */
-  sheet: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingHorizontal: 20,
-    paddingTop: 28,
-    marginTop: -32,
-    ...SHADOWS.sheet,
+  input: { flex: 1, fontSize: 15, color: '#FFFFFF', paddingVertical: 14 },
+  inputFlex: { flex: 1 },
+  eyeButton: { padding: 6, marginLeft: 8 },
+  error: { fontSize: 14, color: '#FF9EBB', textAlign: 'center', marginTop: 12, fontWeight: '600' },
+  actionContainer: { marginTop: 24, width: '100%', alignItems: 'center' },
+  signInButton: {
+    borderRadius: 14, minHeight: 52, paddingVertical: 15, paddingHorizontal: 40, minWidth: 200,
+    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F6A9C6',
+    shadowColor: '#E85D8A', shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45, shadowRadius: 14, elevation: 8,
   },
-  fadeBody: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  subtitle: {
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  form: {
-    width: '100%',
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: NEUMO.title,
-    letterSpacing: 0.3,
-    marginBottom: 6,
-    marginTop: 10,
-    textAlign: 'left',
-  },
-  input: {
-    backgroundColor: NEUMO.surface,
-    borderRadius: NEUMO.inputRadius,
-    borderWidth: 0,
-    borderTopWidth: 1,
-    borderTopColor: NEUMO.highlight,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: NEUMO.title,
-    textAlign: 'left',
-    shadowColor: NEUMO.darkShadow,
-    shadowOffset: NEUMO.extrudeOffset,
-    shadowOpacity: NEUMO.extrudeOpacity,
-    shadowRadius: NEUMO.extrudeRadius,
-    elevation: 3,
-  },
-  error: {
-    fontSize: 14,
-    color: COLORS.danger,
-    textAlign: 'center',
-    marginTop: 12,
-    marginBottom: 4,
-    fontWeight: '600',
-  },
-  actionContainer: {
-    marginTop: 24,
-    width: '100%',
-  },
-  link: {
-    fontSize: 14,
-    color: COLORS.primary,
-    textAlign: 'center',
-    fontWeight: '700',
-    paddingVertical: 8,
-  },
+  signInText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 1.2 },
+  switchRow: { fontSize: 13, marginTop: 16, color: '#FFFFFF', textAlign: 'center' },
+  switchLink: { color: '#F6A9C6', fontWeight: '800' },
 });

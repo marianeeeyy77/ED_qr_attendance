@@ -38,15 +38,13 @@ function EventCardInner({ event }: Props) {
   const tone = BADGE_TONE[event.status] ?? BADGE_TONE.draft;
   return (
     <View style={styles.card}>
-      {/* Left status indicator (spec): colored bar keyed to event status. */}
-      <View style={[styles.statusBar, { backgroundColor: tone.bar }]} />
       <View style={styles.body}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{event.name}</Text>
-        <View style={[styles.badge, { backgroundColor: tone.bg, borderColor: `${tone.fg}33` }]}>
-          <Text style={[styles.badgeText, { color: tone.fg }]}>{event.status}</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>{event.name}</Text>
+          <View style={[styles.badge, { backgroundColor: tone.bg, borderColor: `${tone.fg}33` }]}>
+            <Text style={[styles.badgeText, { color: tone.fg }]}>{event.status}</Text>
+          </View>
         </View>
-      </View>
 
       {event.venue ? (
         <View style={styles.metaRow}>
@@ -85,10 +83,6 @@ const styles = StyleSheet.create({
     borderRadius: NEUMO.cardRadius,
     overflow: 'hidden',
     ...SHADOWS.card,
-  },
-  /** Left status indicator — 5pt bar keyed to the event status. */
-  statusBar: {
-    width: 5,
   },
   body: {
     flex: 1,

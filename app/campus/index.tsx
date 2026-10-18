@@ -1,27 +1,22 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Animated, Dimensions, Easing, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
-import AnimatedLogo from '@/components/AnimatedLogo';
 import AnimatedPressable from '@/components/AnimatedPressable';
-import Gradient from '@/components/Gradient';
-import { BTN, COLORS, DEPTH, GRADIENTS, RADIUS } from '@/constants/colors';
-import { SHADOWS } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { defaultTabFor, useCampusRole } from '@/lib/campusqr/roles';
 
 /**
- * Landing splash — press the pill button to go to Log In (tapping elsewhere does nothing).
- * Layout: 20%-larger mark centered top-middle, bold title + secondary
- * subtitle, high-contrast pill button near the bottom. On tap the brand
- * + pill glide up + fade while login fades in (campus/_layout `fade`)
- * for one smooth handoff.
+ * Landing splash (mockup layout, black & pink): pink hero (~55% of the
+ * screen) with QR mark + "CCTC", wave divider into a black auth section
+ * ("QR ATTENDANCE", "Scan • Attend • Succeed", GET STARTED → login).
  *
- * Already-signed-in users never see the pill: the splash instantly
- * forwards them to their default tab (covers cold starts with a
- * persisted session and the login->tabs replace race).
+ * Already-signed-in users never see the buttons: the splash instantly
+ * forwards them to their default tab.
  */
 export default function CampusLandingScreen() {
   const router = useRouter();
@@ -43,12 +38,10 @@ export default function CampusLandingScreen() {
     router.replace(defaultTabFor(role));
   }, [session, role, roleLoading, router]);
 
-  // 0 -> 1 on mount (staggered entrance), 0 -> 1 on tap (exit).
+  // Static entrance (no looping motion per request): fade/rise once.
   const intro = useRef(new Animated.Value(0)).current;
   const pillIntro = useRef(new Animated.Value(0)).current;
   const enter = useRef(new Animated.Value(0)).current;
-  // Subtle breathing scale on the pill so it reads as tappable.
-  const pillPulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(intro, {
@@ -64,28 +57,7 @@ export default function CampusLandingScreen() {
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
-
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pillPulse, {
-          toValue: 1,
-          duration: 1200,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pillPulse, {
-          toValue: 0,
-          duration: 1200,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    pulse.start();
-    return () => {
-      pulse.stop();
-    };
-  }, [intro, pillIntro, pillPulse]);
+  }, [intro, pillIntro]);
 
   // If the user backs out of login, restore the splash visible state.
   // Skipped after an authed auto-forward (forwarded stays latched) so the
@@ -104,16 +76,12 @@ export default function CampusLandingScreen() {
     }, [enter, intro, pillIntro])
   );
 
-  // Tap to continue: navigate WITH the fade (not after it) so the splash
-  // exit overlaps login's entrance — no blank frame between screens.
-  // The exit is short (~180ms); the pill pulse is frozen on tap so the
-  // button can't jump a frame before leaving.
-  const handleEnter = () => {
+  // Tap GET STARTED: navigate WITH the fade so the splash exit overlaps
+  // login's entrance — no blank frame.
+  const go = () => {
     if (navigating.current) return;
     navigating.current = true;
     didLeave.current = true;
-    pillPulse.stopAnimation();
-    pillPulse.setValue(0);
     Animated.timing(enter, {
       toValue: 1,
       duration: 180,
@@ -135,169 +103,92 @@ export default function CampusLandingScreen() {
   const headerOpacity = Animated.multiply(intro, exitOpacity);
   const footerOpacity = Animated.multiply(pillIntro, exitOpacity);
   const exitScale = enter.interpolate({ inputRange: [0, 1], outputRange: [1, 0.94] });
-  const pulseScale = pillPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.03] });
   const headerScale = exitScale;
-  const footerScale = Animated.multiply(exitScale, pulseScale);
+  const footerScale = exitScale;
 
   return (
     <View style={styles.root}>
-      {/* Full-screen blue gradient backdrop (styling-only). */}
-      <Gradient
-        colors={GRADIENTS.header}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.backdrop}
-      />
-      <View style={[styles.column, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
-        {/* Logo (20% larger) + bold title + secondary subtitle, top-middle. */}
-        <Animated.View
-          style={[
-            styles.header,
-            {
-              opacity: headerOpacity,
-              transform: [{ translateY: headerY }, { scale: headerScale }],
-            },
-          ]}
-        >
-          <AnimatedLogo size={115} iconSize={58} />
-          <Text style={styles.appName}>School Attendance System</Text>
-          <Text style={styles.tagline}>Fast &amp; Easy Attendance</Text>
-        </Animated.View>
+      {/* Pink hero (~55% of the screen) with QR mark + CCTC. */}
+      <Animated.View
+        style={[
+          styles.hero,
+          { paddingTop: insets.top, opacity: headerOpacity, transform: [{ translateY: headerY }, { scale: headerScale }] },
+        ]}
+      >
+        <View style={styles.markCircle}>
+          <Ionicons name="qr-code" size={72} color="#C2436F" />
+        </View>
+        <Text style={styles.brand}>CCTC</Text>
+      </Animated.View>
 
-        {/* High-contrast pill inside a rounded white sheet (spec). */}
-        <Animated.View
-          style={[
-            styles.footer,
-            {
-              opacity: footerOpacity,
-              transform: [{ translateY: footerY }, { scale: footerScale }],
-            },
-          ]}
-        >
-          <View style={styles.sheet}>
-          <AnimatedPressable
-            style={styles.pillButton}
-            onPress={handleEnter}
-            glowColor={COLORS.primary}
-            accessibilityRole="button"
-            accessibilityLabel="Tap to Continue to Log In"
-          >
-            {/* Vibrant gradient surface + specular sheen (styling-only). */}
-            <Gradient
-              colors={GRADIENTS.primary}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.pillFill}
-            />
-            <Gradient
-              colors={DEPTH.specularTop}
-              locations={[0, 0.5]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.pillSheen}
-            />
-            <Text style={styles.pillText}>Tap to Continue</Text>
-          </AnimatedPressable>
-          </View>
-        </Animated.View>
+      {/* Wave divider into the black section. */}
+      <View style={styles.waveWrap} aria-hidden>
+        <Svg width={W} height={64} viewBox={`0 0 ${W} 64`} preserveAspectRatio="none">
+          <Path
+            d={`M0,40 C${W * 0.22},12 ${W * 0.38},12 ${W * 0.55},32 C${W * 0.72},52 ${W * 0.88},44 ${W},28 L${W},64 L0,64 Z`}
+            fill="#111111"
+          />
+        </Svg>
       </View>
+
+      {/* Black section: tagline + GET STARTED only. */}
+      <Animated.View
+        style={[
+          styles.sheet,
+          { paddingBottom: insets.bottom + 32, opacity: footerOpacity, transform: [{ translateY: footerY }, { scale: footerScale }] },
+        ]}
+      >
+        <Text style={styles.appName}>QR ATTENDANCE</Text>
+        <Text style={styles.tagline}>Scan • Attend • Succeed</Text>
+        <AnimatedPressable
+          style={styles.pillButton}
+          onPress={go}
+          glowColor="#E85D8A"
+          accessibilityRole="button"
+          accessibilityLabel="Get started — go to Log In"
+        >
+          <Text style={styles.pillText}>GET STARTED</Text>
+        </AnimatedPressable>
+      </Animated.View>
     </View>
   );
 }
 
+const W = Dimensions.get('window').width;
+const H = Dimensions.get('window').height;
+
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: COLORS.background,
+  root: { flex: 1, backgroundColor: '#F6A9C6' },
+  /** Taller pink panel so pink dominates black (~55 / 45). */
+  hero: {
+    height: Math.round(H * 0.55),
+    alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 24, paddingBottom: 24,
   },
-  /** Full-screen blue gradient backdrop behind the brand + sheet. */
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
+  markCircle: {
+    width: 148, height: 148, borderRadius: 74,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
-  column: {
-    flex: 1,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-  },
-  header: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  appName: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -0.4,
-    textAlign: 'center',
-    marginTop: 16,
-  },
-  tagline: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.85)',
-    letterSpacing: 0.2,
-    textAlign: 'center',
-    marginTop: 6,
-  },
-  footer: {
-    width: '100%',
-    alignSelf: 'center',
-    paddingBottom: 8,
-  },
-  /** Rounded white sheet overlay holding the CTA (spec: radius 32). */
+  brand: { fontSize: 30, fontStyle: 'italic', fontWeight: '800', color: '#C2436F', letterSpacing: 1 },
+  waveWrap: { backgroundColor: '#F6A9C6', marginBottom: -1 },
   sheet: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingVertical: 28,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    ...SHADOWS.sheet,
+    flex: 1, backgroundColor: '#111111',
+    paddingHorizontal: 32, alignItems: 'center',
+    // Push QR ATTENDANCE / tagline / GET STARTED lower on the screen.
+    justifyContent: 'center', paddingBottom: 24,
   },
+  appName: { fontSize: 23, fontWeight: '800', color: '#FFFFFF', letterSpacing: -0.2, textAlign: 'center' },
+  tagline: { fontSize: 14, fontWeight: '700', color: '#FFFFFF', textAlign: 'center', marginTop: 8 },
   pillButton: {
-    borderRadius: RADIUS.pill,
-    minHeight: BTN.primary,
-    minWidth: 220,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    shadowColor: '#1D4ED8',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 18,
-    elevation: 10,
+    marginTop: 24, borderRadius: 999, minHeight: 52, minWidth: 230,
+    paddingVertical: 15, paddingHorizontal: 40,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#F6A9C6',
+    shadowColor: '#E85D8A', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45, shadowRadius: 18, elevation: 10,
   },
-  /** Absolute gradient surface inside the pressable (styling-only). */
-  pillFill: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    borderRadius: RADIUS.pill,
-  },
-  /** Specular top sheen — reads as a raised, glossy pill. */
-  pillSheen: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    height: '55%',
-    borderRadius: RADIUS.pill,
-  },
-  pillText: {
-    color: COLORS.textOnPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textAlign: 'center',
-    zIndex: 1,
-  },
+  pillText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 1, textAlign: 'center' },
 });
 
 

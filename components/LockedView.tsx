@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     backgroundColor: NEUMO.surface,
     borderRadius: NEUMO.cardRadius,
     borderWidth: 1,
-    borderTopColor: NEUMO.highlight,
+    borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
     paddingVertical: 28,
     paddingHorizontal: 24,
     shadowColor: NEUMO.darkShadow,

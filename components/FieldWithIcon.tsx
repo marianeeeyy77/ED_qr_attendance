@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     borderRadius: NEUMO.inputRadius,
     borderWidth: 0,
     borderTopWidth: 1,
-    borderTopColor: NEUMO.highlight,
+    borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
     paddingHorizontal: 16,
     minHeight: 52,
     shadowColor: NEUMO.darkShadow,

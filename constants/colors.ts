@@ -1,32 +1,27 @@
 import { THEME } from './theme';
 
 /**
- * CampusQR Attend design tokens — modern Blue theme.
+ * CampusQR Attend design tokens — Black & Pink theme.
  *
- * The whole app (legacy + CampusQR screens) reads from COLORS / SLATE /
- * GRADIENTS / DEPTH / GLASS, so the Modern Blue language is applied in one
- * place. Screens set `backgroundColor: COLORS.background`, which is
- * transparent — the shared <AppBackground> ice-blue field shows through.
- *
- * All values derive from constants/theme.ts (presentation layer only):
- *   Deep Royal Blue  #1E40AF  → primary headers, active tabs, CTA buttons
- *   Electric Blue    #3B82F6  → interactive states, badges, progress
- *   Soft Ice Blue    #F0F5FA  → main background field
- *   White            #FFFFFF  → surface containers / cards / inputs
- *   Dark Slate       #0F172A  → heading text
- *   Cool Slate       #334155  → body / secondary text
+ * The whole app reads from COLORS / SLATE / GRADIENTS / DEPTH / GLASS.
+ * Pink heroes + pink CTAs, black sheets/headers, white surfaces.
+ * All fonts high-contrast: dark on light, white on black.
  */
 
 export const COLORS = {
-  // ---- Brand / Accents ------------------------------------------------
-  primary: THEME.primary, // Deep royal blue — brand, CTA buttons, active tabs, links
-  primaryDeep: THEME.primaryDeep, // Deeper shade for pressed states
-  primaryLight: THEME.primaryLight, // Lighter royal blue for hover/gradients
+  // ---- Brand / Accents (black + pink) ----------------------------------
+  primary: THEME.primary, // Pink — brand, CTA buttons, active tabs, links
+  primaryDeep: THEME.primaryDeep, // Deeper pink for pressed states
+  primaryLight: THEME.primaryLight, // Light pink for hover/gradients
 
-  /** Electric blue — secondary accent, badges, chips, progress. */
+  /** Light pink — secondary accent, badges, chips, progress. */
   accent: THEME.accent,
-  accentDeep: THEME.accentDeep, // Deeper electric blue for accent borders
+  accentDeep: THEME.accentDeep, // Deep pink for accent borders
   blue: THEME.accent, // gradient partner / info glow
+  /** Near-black — nav bars, dark panels, header bar. */
+  ink: THEME.ink,
+  /** Soft pink hero fill. */
+  hero: THEME.hero,
 
   // ---- Surfaces (Soft Ice Blue Theme) ------------------------------
   /** Transparent — the ice-blue field lives in <AppBackground>. */
@@ -47,10 +42,14 @@ export const COLORS = {
   frosted: THEME.frosted,
 
   // ---- Text -----------------------------------------------------------
-  textPrimary: THEME.headingText, // Dark slate — primary text
-  textSecondary: THEME.bodyText, // Cool slate for secondary text
-  textOnPrimary: '#FFFFFF', // White text on royal blue CTA buttons
-  textOnLight: THEME.headingText, // Dark slate text on light panels
+  textPrimary: THEME.headingText, // Near-black — primary text on light
+  textSecondary: THEME.bodyText, // Dark gray — secondary text on light
+  textOnPrimary: '#FFFFFF', // White text on pink CTA buttons (readable)
+  textOnLight: THEME.headingText,
+  /** White — headings on black sheets. */
+  textOnDark: THEME.headingOnDark,
+  /** Light gray — body on black sheets (readable). */
+  textMutedOnDark: THEME.bodyOnDark,
 
   // ---- Lines / depth --------------------------------------------------
   border: THEME.border, // Tinted hairline border
@@ -77,14 +76,14 @@ export const COLORS = {
 } as const;
 
 /**
- * Modern Blue theme (new visual language).
- * Cards use white surfaces with blue-tint hairline borders; nav/header use Deep Royal Blue.
+ * Black & Pink theme.
+ * Cards use white surfaces with neutral hairline borders; nav/header use black.
  */
 export const SLATE = {
   base: THEME.primary,
   card: THEME.card,
   cardSolid: THEME.surface,
-  landingCard: 'rgba(255, 255, 255, 0.92)',
+  landingCard: 'rgba(255, 255, 255, 0.96)',
   tabBar: THEME.tabBar,
   border: THEME.border,
   indigo: THEME.primary,
@@ -97,43 +96,41 @@ export const SLATE = {
   muted: THEME.bodyText,
 } as const;
 
-/** Brand gradients (Soft Ice Blue + Deep Royal Blue + Electric Blue). */
+/** Brand gradients (pink hero + pink CTAs + black fills). */
 export const GRADIENTS = {
-  /** Global background stops (ice blue, lightest near 50% 30%). */
+  /** Global background stops (soft pink). */
   background: THEME.bgStops,
-  /** Logo / app mark (Royal Blue → Electric Blue). */
-  brand: [THEME.primary, THEME.primaryLight, THEME.accent] as const,
-  /** Personnel (teacher/admin) buttons (deep royal blue). */
+  /** Logo / app mark (pink → deep pink). */
+  brand: [THEME.primary, THEME.primaryDeep, THEME.accent] as const,
+  /** Personnel buttons (pink family). */
   personnel: [THEME.primary, THEME.primaryDeep] as const,
-  /** Student buttons (electric blue family, on-palette). */
+  /** Student buttons (pink family). */
   student: [THEME.accent, THEME.primary] as const,
-  /** Fintech header (electric blue → royal blue). Styling-only. */
-  header: [THEME.accent, THEME.primaryLight, THEME.primary] as const,
-  /** Scan FAB (electric blue family). Styling-only. */
-  scanFab: [THEME.accent, THEME.primary] as const,
-  /** Soft-glass primary pill (royal blue). Styling-only. */
-  primary: [THEME.primary, THEME.primaryLight] as const,
+  /** Header band (pink hero → deeper pink). Styling-only. */
+  header: [THEME.hero, THEME.heroDeep, THEME.primary] as const,
+  /** Soft-glass primary pill (pink). Styling-only. */
+  primary: [THEME.primary, THEME.primaryDeep] as const,
 } as const;
 
-/** The exact CSS radial gradient used on web (Soft Ice Blue). */
-export const WEB_BACKGROUND_CSS = 'radial-gradient(ellipse 80% 60% at 50% 30%, #F7FAFD 0%, #F0F5FA 45%, #E3EDF7 75%, #D6E4F4 100%)';
+/** The exact CSS radial gradient used on web (soft pink). */
+export const WEB_BACKGROUND_CSS = 'radial-gradient(ellipse 80% 60% at 50% 30%, #FFFFFF 0%, #FBF1F5 45%, #F6DCE7 75%, #F2C6D8 100%)';
 
-/** Glassmorphism recipes (white glass, blue-tint hairlines). */
+/** Glassmorphism recipes (white glass, neutral hairlines). */
 export const GLASS = {
   card: {
-    overlay: 'rgba(255, 255, 255, 0.88)',
+    overlay: 'rgba(255, 255, 255, 0.92)',
     border: THEME.border,
     intensity: 40,
     radius: 16,
   },
   soft: {
-    overlay: 'rgba(255, 255, 255, 0.7)',
+    overlay: 'rgba(255, 255, 255, 0.75)',
     border: THEME.borderSoft,
     intensity: 30,
     radius: 16,
   },
   dark: {
-    overlay: 'rgba(30, 64, 175, 0.94)',
+    overlay: 'rgba(0, 0, 0, 0.94)',
     border: 'rgba(255, 255, 255, 0.16)',
     intensity: 34,
     radius: 16,
@@ -171,17 +168,17 @@ export const DEPTH = {
   /** Softer sheen for the header / smaller marks. */
   sheenSoft: ['rgba(255,255,255,0.40)', 'rgba(255,255,255,0)'] as const,
   /** Inner shading along the bottom of a glass pane (thickness). */
-  innerBottom: ['rgba(30,64,175,0)', 'rgba(30,64,175,0.10)'] as const,
+  innerBottom: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.08)'] as const,
   /** Beveled edge: lighter top hairline than the sides. */
   bevelTop: 'rgba(255,255,255,0.55)',
 
-  /** Background aurora glows (electric blue + royal blue, from the palette). */
-  auroraBlue: ['rgba(59,130,246,0.45)', 'rgba(59,130,246,0)'] as const,
-  auroraIndigo: ['rgba(30,64,175,0.10)', 'rgba(30,64,175,0)'] as const,
-  /** Grounding glow toward the bottom (electric blue). */
-  auroraFloor: ['rgba(59,130,246,0.35)', 'rgba(59,130,246,0)'] as const,
-  /** Edge vignette to focus the center (royal blue shadow). */
-  vignette: ['rgba(30,64,175,0)', 'rgba(30,64,175,0.12)'] as const,
+  /** Background aurora glows (soft pink). */
+  auroraBlue: ['rgba(232,93,138,0.16)', 'rgba(232,93,138,0)'] as const,
+  auroraIndigo: ['rgba(194,67,111,0.10)', 'rgba(194,67,111,0)'] as const,
+  /** Grounding glow toward the bottom (soft pink). */
+  auroraFloor: ['rgba(232,93,138,0.12)', 'rgba(232,93,138,0)'] as const,
+  /** Edge vignette to focus the center (neutral shadow). */
+  vignette: ['rgba(0,0,0,0)', 'rgba(0,0,0,0.10)'] as const,
 
   /** Button glow shadows — tinted to the accent, not pure black. */
   glowPersonnel: THEME.primary,

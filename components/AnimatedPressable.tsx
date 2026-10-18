@@ -54,7 +54,7 @@ function AnimatedPressableInner({
   disabled = false,
   style,
   pressScale = 0.96,
-  glowColor = '#1E40AF',
+  glowColor = '#111111',
   accessibilityRole = 'button',
   accessibilityLabel,
   accessibilityState,

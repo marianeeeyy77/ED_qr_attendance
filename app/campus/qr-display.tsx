@@ -17,7 +17,7 @@ import ScreenTransition from '@/components/ScreenTransition';
 import StatusPill from '@/components/StatusPill';
 import { useToast } from '@/components/CampusToast';
 import { COLORS, NEUMO } from '@/constants/colors';
-import { getEventById, qrPayload, setEventStatus } from '@/lib/campusqr/events';
+import { ensureQrToken, getEventById, qrPayload, setEventStatus } from '@/lib/campusqr/events';
 import { formatDateTime } from '@/lib/campusqr/format';
 import type { EventRow } from '@/types/database';
 
@@ -39,7 +39,10 @@ export default function CampusQrDisplayScreen() {
       return;
     }
     const row = await getEventById(eventId);
-    setEvent(row);
+    // Self-heal: events created before the token fix have qr_token NULL,
+    // which renders "CAMPUSQR:null" (unscannable). Generate + persist one.
+    const fixed = row && !row.qr_token ? await ensureQrToken(row) : row;
+    setEvent(fixed);
     setLoading(false);
   }, [eventId]);
 
@@ -119,16 +122,10 @@ export default function CampusQrDisplayScreen() {
             <View style={styles.qrWrap}>
               <QRDisplay value={qrPayload(event)} size={264} caption={qrPayload(event)} />
             </View>
-            <AnimatedPressable style={styles.secondaryButton} onPress={handleCopy}>
-              <View style={styles.secondaryIcon}>
-                <Ionicons name="keypad-outline" size={18} color={COLORS.primary} />
-              </View>
-              <Text style={styles.secondaryText}>How do students check in?</Text>
-            </AnimatedPressable>
             <AnimatedPressable style={styles.secondaryButton} onPress={handleToggle} disabled={busy}>
               <View style={styles.secondaryIcon}>
                 <Ionicons
-                  name={event.status === 'open' ? 'lock-closed-outline' : 'lock-open-outline'}
+                  name={event.status === 'open' ? 'lock-open-outline' : 'lock-closed-outline'}
                   size={18}
                   color={COLORS.primary}
                 />
@@ -167,7 +164,7 @@ const styles = StyleSheet.create({
   secondaryButton: {
     minHeight: 52, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     backgroundColor: NEUMO.surface, borderRadius: NEUMO.inputRadius,
-    borderWidth: 0, borderTopWidth: 1, borderTopColor: NEUMO.highlight,
+    borderWidth: 0, borderTopWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
     marginBottom: 10, position: 'relative',
     shadowColor: NEUMO.darkShadow, shadowOffset: NEUMO.extrudeOffset,
     shadowOpacity: NEUMO.extrudeOpacity, shadowRadius: NEUMO.extrudeRadius, elevation: 3,

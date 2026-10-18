@@ -6,8 +6,8 @@ import Gradient from '@/components/Gradient';
 import { GRADIENTS, NEUMO } from '@/constants/colors';
 
 /**
- * Shared header for every CampusQR tab (styling-only refresh): vibrant
- * blue pill gradient bar + soft-extrude logo tile. No logic or routing.
+ * Shared header for every CampusQR tab (black & pink): pink gradient bar
+ * + white logo tile. Serves the Student, Teacher and Admin interfaces.
  */
 export default function AppHeader() {
   const insets = useSafeAreaInsets();
@@ -21,10 +21,10 @@ export default function AppHeader() {
     >
       <View style={styles.inner}>
         <View style={styles.logo}>
-          <Ionicons name="qr-code" size={22} color="#FFFFFF" />
+          <Ionicons name="qr-code" size={22} color="#111111" />
         </View>
         <Text style={styles.appName} numberOfLines={1}>
-          School Attendance System
+          QR Attendance
         </Text>
       </View>
     </Gradient>
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   bar: {
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    shadowColor: '#1E3A8A',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.22,
     shadowRadius: 12,
@@ -54,11 +54,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: NEUMO.highlight,
+    borderColor: 'rgba(0, 0, 0, 0.12)',
     marginRight: 10,
-    shadowColor: '#0F172A',
+    shadowColor: '#000000',
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 8,

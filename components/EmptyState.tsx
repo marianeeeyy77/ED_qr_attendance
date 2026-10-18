@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     borderRadius: 44,
     backgroundColor: NEUMO.surface,
     borderWidth: 1,
-    borderTopColor: NEUMO.highlight,
+    borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: NEUMO.darkShadow,

@@ -99,7 +99,7 @@ export default function SystemReportsScreen() {
     setSharing(true);
     try {
       await Share.share({
-        title: 'School Attendance System report',
+        title: 'QR Attendance report',
         message: summariesToCsv(summaries),
       });
     } catch {
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     backgroundColor: NEUMO.surface,
     borderRadius: 14,
     borderWidth: 1,
-    borderTopColor: NEUMO.highlight,
+    borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
     padding: 4,
     marginHorizontal: 0,
   },
@@ -322,20 +322,20 @@ const styles = StyleSheet.create({
   periodChip: {
     minHeight: 40, paddingHorizontal: 14, justifyContent: 'center',
     borderRadius: 999, backgroundColor: NEUMO.surface,
-    borderWidth: 1, borderTopColor: NEUMO.highlight,
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
   },
-  periodChipActive: { backgroundColor: NEUMO.title, borderColor: NEUMO.title },
+  periodChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   periodText: { fontSize: 13, fontWeight: '600', color: '#334155' },
   periodTextActive: { color: '#FFFFFF' },
   loadingBox: { alignItems: 'center', paddingVertical: 48, gap: 12 },
   hint: { fontSize: 13, color: '#334155' },
   totalsCard: {
     backgroundColor: NEUMO.surface, borderRadius: 16,
-    borderWidth: 1, borderTopColor: NEUMO.highlight, padding: 16, gap: 12,
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight, padding: 16, gap: 12,
   },
   card: {
     backgroundColor: NEUMO.surface, borderRadius: 16,
-    borderWidth: 1, borderTopColor: NEUMO.highlight, padding: 16, gap: 8,
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight, padding: 16, gap: 8,
   },
   cardTitle: { fontSize: 16, fontWeight: '700', color: NEUMO.title },
   grid4: { flexDirection: 'row', gap: 8 },
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 17, fontWeight: '700', color: NEUMO.title, marginTop: 8 },
   logCard: {
     backgroundColor: NEUMO.surface, borderRadius: 16,
-    borderWidth: 1, borderTopColor: NEUMO.highlight, padding: 16, gap: 4,
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight, padding: 16, gap: 4,
   },
   logAction: { fontSize: 15, fontWeight: '700', color: NEUMO.title },
 });

@@ -88,3 +88,25 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
   }
   return data as Profile | null;
 }
+
+/**
+ * Best-effort self-heal: when the signup trigger left `student_no` empty
+ * but the auth signup metadata carries one, backfill the profile row.
+ * Never throws — the profile screen must not break on refusal.
+ */
+export async function backfillStudentNo(
+  userId: string,
+  studentNo: string
+): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ student_no: studentNo })
+      .eq('id', userId);
+    if (error) {
+      console.warn('[campusqr/profiles] student_no backfill failed:', error.message);
+    }
+  } catch (err) {
+    console.warn('[campusqr/profiles] student_no backfill failed:', err);
+  }
+}

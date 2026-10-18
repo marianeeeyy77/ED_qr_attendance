@@ -143,6 +143,10 @@ export async function saveNewEvent(
       end_datetime: input.end_datetime,
       status: input.status,
       created_by: createdBy,
+      // Explicit client-side token: upgraded databases can have qr_token
+      // nullable without a default — never insert NULL or the rendered QR
+      // becomes "CAMPUSQR:null" and student scans resolve to invalid.
+      qr_token: newQrToken(),
     })
     .select(EVENT_COLUMNS)
     .single();
@@ -216,6 +220,34 @@ export async function deleteEvent(id: string): Promise<{ error: string | null }>
 /** The QR payload for an event: "CAMPUSQR:<qr_token>". */
 export function qrPayload(event: EventRow): string {
   return `CAMPUSQR:${event.qr_token}`;
+}
+
+/** A fresh QR token — UUID when available, opaque fallback otherwise. */
+function newQrToken(): string {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? (crypto as any).randomUUID()
+    : `qr-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+/**
+ * Self-heal for upgraded databases where events.qr_token was added without
+ * a default and is NULL (the QR would render "CAMPUSQR:null" and student
+ * scans would resolve to invalid). When the loaded event has no token,
+ * generate + persist one and return the fresh row. Best-effort: returns
+ * the original event when the save is refused (RLS) or fails.
+ */
+export async function ensureQrToken(event: EventRow): Promise<EventRow> {
+  if (event.qr_token) return event;
+  const fresh = newQrToken();
+  const { error } = await supabase
+    .from('events')
+    .update({ qr_token: fresh })
+    .eq('id', event.id);
+  if (error) {
+    console.warn('[campusqr/events] ensureQrToken failed:', error.message);
+    return event;
+  }
+  return { ...event, qr_token: fresh };
 }
 
 /**

@@ -76,14 +76,14 @@ export default memo(function BusyButton({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={primary ? '#FFFFFF' : COLORS.primary}
+          color={primary ? '#FFFFFF' : '#111111'}
           style={styles.icon}
         />
       ) : icon ? (
         <Ionicons
           name={icon}
           size={22}
-          color={primary ? '#FFFFFF' : COLORS.primary}
+          color={primary ? '#FFFFFF' : '#111111'}
           style={styles.icon}
         />
       ) : null}
@@ -109,12 +109,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     marginBottom: 14,
+    backgroundColor: '#111111',
   },
   primaryFill: {
     backgroundColor: COLORS.primary,
     borderWidth: 1,
     borderColor: COLORS.primaryDeep,
-    shadowColor: '#1D4ED8',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 14,
@@ -139,10 +140,10 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   secondaryFill: {
-    backgroundColor: COLORS.accent,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: COLORS.accentDeep,
-    shadowColor: COLORS.accentDeep,
+    borderColor: 'rgba(0, 0, 0, 0.16)',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.28,
     shadowRadius: 10,
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   secondaryLabel: {
-    color: COLORS.primary,
+    color: '#111111',
   },
   disabled: {
     opacity: 0.55,

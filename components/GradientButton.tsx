@@ -12,11 +12,11 @@ const COLORS_BY_VARIANT: Record<Variant, readonly [string, string]> = {
   brand: GRADIENTS.primary,
 };
 
-/** Soft blue glow-shadow for the vibrant pill (styling-only). */
+/** Soft black glow-shadow for the mono pill (styling-only). */
 const GLOW_BY_VARIANT: Record<Variant, string> = {
-  personnel: '#1D4ED8',
-  student: '#1D4ED8',
-  brand: '#1D4ED8',
+  personnel: '#000000',
+  student: '#000000',
+  brand: '#000000',
 };
 
 type Props = {
@@ -29,7 +29,7 @@ type Props = {
 };
 
 /**
- * Vibrant blue pill button (styling-only): #2563EB → #1D4ED8 gradient,
+ * Mono pill button (styling-only): black → gray gradient,
  * fully rounded, soft drop shadow. Variants converge on one primary.
  */
 export default memo(function GradientButton({
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   wrap: {
     borderRadius: NEUMO.pillRadius,
     overflow: 'hidden',
-    shadowColor: '#1D4ED8',
+    shadowColor: '#000000',
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 0.25,
     shadowRadius: 8,

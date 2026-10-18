@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '700', color: NEUMO.title, marginBottom: 12, textAlign: 'center' },
   label: { fontSize: 14, fontWeight: '600', color: NEUMO.title, marginBottom: 6, marginTop: 10 },
   input: {
-    backgroundColor: NEUMO.surface, borderRadius: 12, borderWidth: 1, borderTopColor: NEUMO.highlight,
+    backgroundColor: NEUMO.surface, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: NEUMO.title,
   },
   multiline: { minHeight: 88, textAlignVertical: 'top' },

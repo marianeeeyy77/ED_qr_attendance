@@ -163,6 +163,30 @@ alter table public.events     add column if not exists start_time timestamptz;
 alter table public.events     add column if not exists end_time   timestamptz;
 alter table public.attendance add column if not exists scanned_at timestamptz;
 
+-- ---------- upgrade path for pre-existing (legacy) events tables ----------
+-- `create table if not exists` silently SKIPS a table that already exists,
+-- so a legacy events table would be missing every CampusQR column above.
+-- PostgREST then fails with PGRST205 ("Could not find the 'description'
+-- column of 'events' in the schema cache"). These guards make STEP 1 work
+-- on fresh AND upgraded databases (same pattern as the legacy columns above).
+alter table public.events
+  add column if not exists description    text not null default '',
+  add column if not exists venue          text not null default '',
+  add column if not exists start_datetime timestamptz,
+  add column if not exists end_datetime   timestamptz,
+  add column if not exists created_at     timestamptz not null default now(),
+  add column if not exists status         public.event_status not null default 'draft',
+  add column if not exists qr_token       uuid not null default gen_random_uuid(),
+  add column if not exists created_by     uuid references public.profiles(id) on delete set null;
+
+-- One-shot backfills for rows that predate the columns (no-ops on fresh DBs).
+update public.events set qr_token       = gen_random_uuid() where qr_token is null;
+update public.events set start_datetime = start_time
+  where start_datetime is null and start_time is not null;
+update public.events set end_datetime   = end_time
+  where end_datetime is null and end_time is not null;
+create unique index if not exists events_qr_token_key on public.events (qr_token);
+
 -- Keeps profiles.updated_at fresh without any app code.
 create or replace function public.touch_updated_at()
 returns trigger language plpgsql set search_path = public as $$
@@ -849,6 +873,14 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon / publishable key>
 
 Use the **anon / publishable** key — never the `service_role` key.
 Then restart the dev server: `npx expo start -c`.
+
+---
+
+## Troubleshooting
+
+| Problem | Solution |
+|---|---|
+| `PGRST205` — "Could not find the '<column>' column of '<table>' in the schema cache" | The table pre-existed this script, so `create table if not exists` skipped it and the CampusQR columns were never added. Re-run **STEP 1** (safe to re-run — the *upgrade path for pre-existing events tables* block adds any missing columns). If the columns already exist, PostgREST simply hasn't re-read the schema — run `notify pgrst, 'reload schema';` in the SQL Editor, then retry. |
 
 ---
 

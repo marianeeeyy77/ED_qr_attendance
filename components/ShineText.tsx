@@ -10,15 +10,13 @@ type Props = {
   animated?: boolean;
 };
 
-// The title-shine gradient stops (UI/UX §4.1), interpolated across the text
-// color since RN has no `background-clip: text`. Tuned for the light Bone
-// theme: the sweep stays in dark navy/royal-blue territory so the title is
-// always readable on cream (never washing out to white).
+// Mono shine sweep: stays near-black/gray so titles are always readable
+// on white (never washing out).
 const SHINE_COLORS = [
-  '#1E40AF', // royal navy (base)
-  '#3B82F6', // royal blue flash
-  '#1E40AF', // royal navy
-  '#2563EB', // mid navy
+  '#111111', // near-black (base)
+  '#6B6B6B', // gray flash
+  '#111111', // near-black
+  '#3A3A3A', // dark gray
 ];
 
 /**

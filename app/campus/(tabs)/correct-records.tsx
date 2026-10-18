@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   bannerText: { color: '#92400E', fontWeight: '700', fontSize: 13 },
   selectorCard: {
     backgroundColor: NEUMO.surface, borderRadius: 12,
-    borderWidth: 1, borderTopColor: NEUMO.highlight, padding: 14, marginBottom: 10,
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight, padding: 14, marginBottom: 10,
   },
   selectorTitle: { fontSize: 16, fontWeight: '700', color: NEUMO.title },
 });

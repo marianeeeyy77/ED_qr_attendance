@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -12,7 +12,7 @@ import ScreenTransition from '@/components/ScreenTransition';
 import { useToast } from '@/components/CampusToast';
 import { COLORS, NEUMO, SPACING } from '@/constants/colors';
 import { useAuth } from '@/lib/auth';
-import { listVisibleEvents, qrPayload } from '@/lib/campusqr/events';
+import { ensureQrToken, listVisibleEvents, qrPayload } from '@/lib/campusqr/events';
 import { formatDateTime } from '@/lib/campusqr/format';
 import {
   useCampusRealtime,
@@ -63,6 +63,21 @@ export default function GenerateQrScreen() {
   );
 
   const selected = events.find((event) => event.id === selectedId) ?? null;
+
+  // Self-heal: upgraded databases can hold events with qr_token NULL —
+  // the QR would encode "CAMPUSQR:null". Generate + persist a token the
+  // first time such an event is selected. Best-effort.
+  useEffect(() => {
+    if (!selected || selected.qr_token) return;
+    let active = true;
+    ensureQrToken(selected).then((fixed) => {
+      if (!active || !fixed.qr_token) return;
+      setEvents((prev) => prev.map((event) => (event.id === fixed.id ? fixed : event)));
+    });
+    return () => {
+      active = false;
+    };
+  }, [selected]);
 
   return (
     <View style={styles.container}>
@@ -177,7 +192,7 @@ const styles = StyleSheet.create({
   selectorCard: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: NEUMO.surface, borderRadius: 12,
-    borderWidth: 1, borderTopColor: NEUMO.highlight, padding: 14, marginBottom: 12,
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight, padding: 14, marginBottom: 12,
   },
   selectorTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: NEUMO.title },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
@@ -188,13 +203,13 @@ const styles = StyleSheet.create({
   badgeClosedText: { color: '#EF4444' },
   mainCard: {
     backgroundColor: NEUMO.surface, borderRadius: 16,
-    borderWidth: 1, borderTopColor: NEUMO.highlight, padding: 16, alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight, padding: 16, alignItems: 'center',
   },
   eventName: { fontSize: 20, fontWeight: '700', color: NEUMO.title, textAlign: 'center' },
   meta: { fontSize: 13, color: '#334155', marginBottom: 2, textAlign: 'center' },
   guard: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12,
-    backgroundColor: NEUMO.surface, borderRadius: 12, borderWidth: 1, borderTopColor: NEUMO.highlight,
+    backgroundColor: NEUMO.surface, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
     paddingHorizontal: 12, paddingVertical: 10, width: '100%',
   },
   guardText: { flex: 1, fontSize: 13, color: '#334155', lineHeight: 18 },
@@ -204,7 +219,7 @@ const styles = StyleSheet.create({
   },
   codePill: {
     marginTop: 14, backgroundColor: NEUMO.surface, padding: 10,
-    borderRadius: 12, borderWidth: 1, borderTopColor: NEUMO.highlight,
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight,
     width: '100%',
   },
   codeText: { color: NEUMO.title, fontWeight: '700', textAlign: 'center', fontSize: 13 },

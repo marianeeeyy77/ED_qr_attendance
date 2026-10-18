@@ -2,8 +2,6 @@ import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
-import AnimatedPressable from '@/components/AnimatedPressable';
-import AppealsPanel from '@/components/AppealsPanel';
 import AttendanceRecords from '@/components/AttendanceRecords';
 import Dropdown from '@/components/Dropdown';
 import EmptyState from '@/components/EmptyState';
@@ -40,9 +38,6 @@ export default function MonitorAttendanceScreen() {
   const [selectedId, setSelectedId] = useState('');
   const [records, setRecords] = useState<EventAttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  // Monitor | Appeals segment — "Appeals" renders the shared AppealsPanel
-  // (staff review queue) that previously lived in its own tab.
-  const [section, setSection] = useState<'monitor' | 'appeals'>('monitor');
 
   const loadEvents = useCallback(async () => {
     const rows = await listVisibleEvents(role, user?.id ?? null);
@@ -87,32 +82,7 @@ export default function MonitorAttendanceScreen() {
       <ScreenTransition style={styles.flex}>
         <Text style={styles.title}>{isAdmin ? 'Overall Attendance' : 'Monitor Attendance'}</Text>
         
-        {/* Balanced 50/50 Segment Control Wrapper */}
-        <View style={styles.segment}>
-          <AnimatedPressable
-            style={[styles.segBtn, section === 'monitor' && styles.segActive]}
-            outerStyle={styles.segOuterBtn}
-            onPress={() => setSection('monitor')}
-            accessibilityRole="button"
-            accessibilityLabel="Monitor attendance"
-          >
-            <Text style={[styles.segText, section === 'monitor' && styles.segTextActive]}>Monitor</Text>
-          </AnimatedPressable>
-
-          <AnimatedPressable
-            style={[styles.segBtn, section === 'appeals' && styles.segActive]}
-            outerStyle={styles.segOuterBtn}
-            onPress={() => setSection('appeals')}
-            accessibilityRole="button"
-            accessibilityLabel="Appeals queue"
-          >
-            <Text style={[styles.segText, section === 'appeals' && styles.segTextActive]}>Appeals</Text>
-          </AnimatedPressable>
-        </View>
-
-        {section === 'appeals' ? (
-          <AppealsPanel showTitle={false} />
-        ) : loading ? (
+        {loading ? (
           <View style={styles.emptyArea}>
             <Text style={styles.hint}>Loading events...</Text>
           </View>
@@ -200,45 +170,13 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { paddingHorizontal: 16, paddingBottom: 40, paddingTop: 8 },
   title: { fontSize: 22, fontWeight: '700', color: NEUMO.title, paddingTop: 12, marginBottom: 8, textAlign: 'center' },
-  
-  // Segment Container
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: NEUMO.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderTopColor: NEUMO.highlight,
-    padding: 4,
-    marginHorizontal: 16,
-    marginBottom: 8,
-    overflow: 'hidden',
-  },
-  
-  // Outer pressable container guarantees equal 50/50 flex column split
-  segOuterBtn: {
-    flex: 1,
-  },
-  
-  // Inner button styles stretch to 100% of the half provided by segOuterBtn
-  segBtn: {
-    width: '100%',
-    paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 40,
-    borderRadius: 10,
-  },
-  
-  segActive: { backgroundColor: NEUMO.title },
-  segText: { fontSize: 14, fontWeight: '600', color: '#334155' },
-  segTextActive: { color: '#FFFFFF', fontWeight: '700' },
-  
+
   hint: { fontSize: 14, color: '#334155', textAlign: 'center', paddingVertical: 24 },
   emptyArea: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingBottom: 48 },
   selectorCard: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: NEUMO.surface, borderRadius: 16,
-    borderWidth: 1, borderTopColor: NEUMO.highlight, padding: 16, marginBottom: 12,
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight, padding: 16, marginBottom: 12,
   },
   selectorTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: NEUMO.title },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1 },
@@ -249,7 +187,7 @@ const styles = StyleSheet.create({
   badgeClosedText: { color: '#EF4444' },
   liveCard: {
     backgroundColor: NEUMO.surface, borderRadius: 16,
-    borderWidth: 1, borderTopColor: NEUMO.highlight, padding: 16, marginTop: 12, gap: 12,
+    borderWidth: 1, borderColor: 'rgba(17, 17, 17, 0.06)', borderTopColor: NEUMO.highlight, padding: 16, marginTop: 12, gap: 12,
   },
   liveTitle: { fontSize: 15, fontWeight: '700', color: NEUMO.title },
   liveRow: { flexDirection: 'row', gap: 8 },

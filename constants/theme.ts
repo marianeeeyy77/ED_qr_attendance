@@ -1,76 +1,83 @@
 import type { TextStyle, ViewStyle } from 'react-native';
 
 /**
- * CampusQR Attend — Modern Blue design tokens (presentation layer only).
+ * CampusQR Attend — Black & Pink design tokens (presentation only).
  *
- * Single source of truth for the app palette. `constants/colors.ts` derives
- * its COLORS / SLATE / GRADIENTS / GLASS / DEPTH / NEUMO / SHEET tokens from
- * these values, so the whole app (Student, Teacher, Admin views) picks up the
- * theme in one place. No logic, routing, queries or state reads from here —
- * styling only.
- *
- * Palette (spec):
- *   Deep Royal Blue  #1E40AF  → primary headers, active tabs, CTA buttons
- *   Electric Blue    #3B82F6  → interactive accents, links, secondary accents
- *   Soft Ice Blue    #F0F5FA  → main background field
- *   White            #FFFFFF  → surface containers / cards / inputs
- *   Dark Slate       #0F172A  → heading text
- *   Cool Slate       #334155  → body / secondary text
- *
- * Event status pills stay soft pastel (spec):
- *   OPEN   #D1FAE5 (green)   CLOSED #FEE2E2 (red)   DRAFT #E0F2FE (blue)
+ * Single source of truth. `constants/colors.ts` derives its tokens from
+ * these values. Black headers/sheets, pink heroes/CTAs, white surfaces.
+ * Body text is dark gray on light surfaces, white/light-gray on black —
+ * always high contrast and readable. Status pills keep green/amber/red
+ * so attendance states stay distinguishable.
  */
 export const THEME = {
-  // ---- Brand / Accents ------------------------------------------------
-  /** Deep royal blue — primary headers, active tabs, CTAs. */
-  primary: '#1E40AF',
-  /** Deeper shade for pressed states / dark gradients. */
-  primaryDeep: '#1E3A8A',
-  /** Lighter royal blue for hover/gradients (spec: electric blue). */
-  primaryLight: '#3B82F6',
-  /** Electric blue — secondary accent, chips, progress, links. */
-  accent: '#3B82F6',
-  /** Deeper electric blue for accent borders. */
-  accentDeep: '#2563EB',
+  // ---- Brand / Accents (black + pink) ----------------------------------
+  /** Pink — primary CTAs, links, accents. */
+  primary: '#E85D8A',
+  /** Deeper pink for pressed states / dark gradients. */
+  primaryDeep: '#C2436F',
+  /** Light pink for hover/gradients. */
+  primaryLight: '#F49AC1',
+  /** Light pink — secondary accent, chips, progress. */
+  accent: '#F49AC1',
+  /** Deep pink for accent borders. */
+  accentDeep: '#C2436F',
+
+  // ---- Ink (black surfaces) -------------------------------------------
+  /** Near-black — headers, sheets, dark panels. */
+  ink: '#111111',
+  /** Pure black — deepest fills. */
+  inkDeep: '#000000',
+
+  // ---- Hero pink ------------------------------------------------------
+  /** Soft pink hero fill (landing/login/register top). */
+  hero: '#F6A9C6',
+  /** Slightly deeper pink for hero gradient end. */
+  heroDeep: '#F191B8',
 
   // ---- Surfaces -------------------------------------------------------
-  /** Soft ice blue — main app background field. */
-  background: '#F0F5FA',
+  /** Light pink-gray — main app background field. */
+  background: '#FBF1F5',
   /** Solid white — surface containers, cards, inputs. */
   surface: '#FFFFFF',
   /** Translucent white card fill (glass sheets). */
-  card: 'rgba(255, 255, 255, 0.92)',
+  card: 'rgba(255, 255, 255, 0.96)',
   /** Tab bar fill. */
-  tabBar: 'rgba(255, 255, 255, 0.98)',
+  tabBar: '#FFFFFF',
   /** Opaque overlay for modals + dropdown menus. */
   modal: '#FFFFFF',
   /** Elevated frosted surface for forms/tables/modals. */
-  frosted: 'rgba(255, 255, 255, 0.96)',
+  frosted: '#FFFFFF',
   /** Scrim dimming content behind open modal/menu. */
-  scrim: 'rgba(30, 64, 175, 0.35)',
+  scrim: 'rgba(17, 17, 17, 0.45)',
 
-  // ---- Text -----------------------------------------------------------
-  /** Dark slate — headings and titles. */
-  headingText: '#0F172A',
-  /** Cool slate — body / secondary text. */
-  bodyText: '#334155',
+  // ---- Text (high contrast) -------------------------------------------
+  /** Near-black — headings and titles. */
+  headingText: '#111111',
+  /** Dark gray — body / secondary text (readable on white). */
+  bodyText: '#3D3D3D',
   /** Spec alias — heading text. */
-  textHeading: '#0F172A',
+  textHeading: '#111111',
   /** Spec alias — body text. */
-  textBody: '#334155',
+  textBody: '#3D3D3D',
 
   // ---- Lines / depth --------------------------------------------------
-  /** Blue-tinted hairline border. */
-  border: 'rgba(30, 64, 175, 0.16)',
+  /** Neutral hairline border. */
+  border: 'rgba(0, 0, 0, 0.14)',
   /** Softer hairline. */
-  borderSoft: 'rgba(30, 64, 175, 0.10)',
+  borderSoft: 'rgba(0, 0, 0, 0.08)',
   /** Neutral shadow tint. */
-  shadow: '#0F172A',
-  /** Cool grey-blue shadow used by the soft-extrude surfaces. */
-  neumorphicShadow: '#C3D2E3',
+  shadow: '#000000',
+  /** Cool grey shadow used by the soft-extrude surfaces. */
+  neumorphicShadow: '#D4D4D4',
 
-  // ---- Background gradient stops (soft ice blue) ----------------------
-  bgStops: ['#F7FAFD', '#F0F5FA', '#E3EDF7', '#D6E4F4'],
+  // ---- Background gradient stops (soft pink) --------------------------
+  bgStops: ['#FFFFFF', '#FBF1F5', '#F6DCE7', '#F2C6D8'],
+
+  // ---- Text on dark (black sheets — always white / light gray) ---------
+  /** White — headings on black. */
+  headingOnDark: '#FFFFFF',
+  /** Light gray — body on black (readable, not dim). */
+  bodyOnDark: '#EDEDED',
 
   // ---- Event status pills (soft pastel, spec) -------------------------
   status: {
